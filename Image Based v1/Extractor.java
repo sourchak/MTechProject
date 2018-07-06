@@ -7,11 +7,11 @@ import java.io.InputStreamReader;
 import java.io.FileWriter;
 import java.io.FileNotFoundException;
 
-public class Extraction
+public class Extractor
 {
     public static void main(String[] args)throws IOException, FileNotFoundException
     {
-        System.out.print("Provide steganogram to encrypt:");
+        System.out.print("Provide path the steganogram to be decrypted:");
         BufferedImage img= ImageIO.read(new File(new BufferedReader(new InputStreamReader(System.in)).readLine()));
         String message=extract(img);
         System.out.println("Secret message:\n"+message);

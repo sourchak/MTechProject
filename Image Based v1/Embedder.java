@@ -7,7 +7,7 @@ import java.io.InputStreamReader;
 import java.io.FileReader;
 import java.io.FileNotFoundException;
 
-public class BabyStep
+public class Embedder
 {
     static final int space=0;
     static final int period=27;
@@ -51,17 +51,18 @@ public class BabyStep
         long k;
         long pixel;
         FileReader mFile=new FileReader(messageFile);
-        String sent_message="";
-        //considerding that the number of pixels in a image are sufficient to embed the text.
+        String sent_message=""; //debugging
         System.out.println("\nThe sent message is: " ); //debugging
         //for(i=0,m_len=message.length();i<m_len && x<x_lim;i++)
         int c=0;
         while((c=mFile.read())!=-1 && x<x_lim)
         {
-            //System.out.println(x);
-            //System.out.println("Original RGB:"+((long)img.getRGB(x,y) & 0xffffffffL));
-            char c_norm=(char)String.valueOf((char)c).toUpperCase().charAt(0);
-            if((pixel=alterPixel(c_norm,img.getRGB(x,y)))==Long.MAX_VALUE)
+            // all this is debugging
+            // System.out.println(x);
+            // System.out.println("Original RGB:"+((long)img.getRGB(x,y) & 0xffffffffL));
+            char c_norm=(char)String.valueOf((char)c).toUpperCase().charAt(0); 
+            if((pixel=alterPixel(c_norm,img.getRGB(x,y)))==Long.MAX_VALUE)   
+            //this check looks allows the while loop to over characters outside this 32 character alphabet.    
                 continue;
             img.setRGB(x,y,(int)pixel);
             y=y+1;
@@ -70,9 +71,9 @@ public class BabyStep
                 y=0;
                 x++;
             }
-            sent_message=sent_message+String.valueOf(c);
+            sent_message=sent_message+String.valueOf(c);//debugging
         }
-        img.setRGB(x,y,(int)alterPixel((char)31,img.getRGB(x,y)));
+        img.setRGB(x,y,(int)alterPixel((char)eom,img.getRGB(x,y)));
         return img;
     }
     static long alterPixel(char c, long k)
@@ -119,12 +120,12 @@ public class BabyStep
             }
         if(check!=0)
             return Long.MAX_VALUE;
-        System.out.print(c);//Debugging
+        System.out.print(c);//Debugging: It prints the characters which are emdedded into the steganogram. 
         red=(red & 252)+(true_c >>3);
         green=(green & 254)+(true_c >> 2 & 1);
         blue=(blue & 252)+(true_c & 3);
         long alteredPixel=0;
-        alteredPixel=(alteredPixel+(alpha & 0xff))<<8;
+        alteredPixel=(alteredPixel+(alpha & 0xff))<<8; //the bitwise ands are not really necessary..
         alteredPixel=(alteredPixel+(red & 0xff))<<8;
         alteredPixel=(alteredPixel+(green & 0xff))<<8;
         alteredPixel=alteredPixel+(blue & 0xff);
