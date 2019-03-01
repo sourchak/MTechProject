@@ -42,7 +42,7 @@ public class Embedder
         return inputs;
     }
     /*
-        Only characters 'A'-'Z' and '.' ' ',' ' '?' ' ' '!' are embedded other characters like '$' and numbers are ignored.
+        Only characters 'A'-'Z' and '.' , ',' , '?' , ' ' , '!' are embedded other characters like '$' and numbers are ignored.
     */
     static BufferedImage embed(BufferedImage img, String messageFile)throws FileNotFoundException, IOException
     {
@@ -60,9 +60,9 @@ public class Embedder
             // all this is debugging
             // System.out.println(x);
             // System.out.println("Original RGB:"+((long)img.getRGB(x,y) & 0xffffffffL));
-            char c_norm=(char)String.valueOf((char)c).toUpperCase().charAt(0); 
-            if((pixel=alterPixel(c_norm,img.getRGB(x,y)))==Long.MAX_VALUE)   
-            //this check looks allows the while loop to over characters outside this 32 character alphabet.    
+            char c_norm=(char)String.valueOf((char)c).toUpperCase().charAt(0);
+            if((pixel=alterPixel(c_norm,img.getRGB(x,y)))==Long.MAX_VALUE)
+            //this check looks allows the while loop to over characters outside this 32 character alphabet.
                 continue;
             img.setRGB(x,y,(int)pixel);
             y=y+1;
@@ -120,7 +120,7 @@ public class Embedder
             }
         if(check!=0)
             return Long.MAX_VALUE;
-        System.out.print(c);//Debugging: It prints the characters which are emdedded into the steganogram. 
+        System.out.print(c);//Debugging: It prints the characters which are emdedded into the steganogram.
         red=(red & 252)+(true_c >>3);
         green=(green & 254)+(true_c >> 2 & 1);
         blue=(blue & 252)+(true_c & 3);
