@@ -2,14 +2,14 @@ import string
 
 skip_window=2
 
-f=open('./text.txt','r')
+f=open('./aesop10.txt','r')
 l=list(f)
 original_text=[]
 for x in l:
     original_text=original_text+x.split(' ')
 n_wordLine=len(original_text)
 new_text=[]
-print original_text
+# print original_text
 pos=string.punctuation.find('.') # position of the period
 punc_Period=string.punctuation[0:pos]+string.punctuation[pos+1:] # removes period from string.punctuation
 
@@ -20,7 +20,7 @@ for x in original_text:
     perioded_str=string.translate(x,None,punc_Period) # removes all punctuations except period
     # noNewLine_str=string.replace(unpunctuated_str,'\n','')
     noNewLine_perioded_str=string.replace(perioded_str,'\n','') # replace newline with empty string
-
+    noNewLine_perioded_str=string.replace(noNewLine_perioded_str,'\r','') 
     # new_text=new_text+[noNewLine_str]
 
     # new_text is a list of words where newline is replaced by '' and punctuations except '.' have been removed
@@ -36,8 +36,6 @@ while x < n_wordLine :
         buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] #[m words][x][m words]
         flag=True
         i=0
-        print "Buffer "+str(x)
-        print buffer
         while i<len(buffer) and flag==True:
             if i!=len(buffer)-1 and buffer[i][-1:]!='.' and buffer[i]!='':
                 i=i+1
@@ -49,11 +47,13 @@ while x < n_wordLine :
                 flag=False
         if flag==True:
             word_to_context[x]=buffer
+            print "Buffer "+str(x)
+            print buffer
             x=x+skip_window
         else:
             flag=True
     x=x+1
 locations=word_to_context.keys() # locations to encrypt
-print word_to_context
-print "Length of word_to_context="+ str(len(word_to_context))
-print locations
+# print word_to_context
+# print "Length of word_to_context="+ str(len(word_to_context))
+# print "Locations to encrypt: " +  str(locations)
