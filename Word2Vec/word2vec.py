@@ -140,7 +140,7 @@ def word2vec_basic(log_dir):
 
   batch, labels = generate_batch(batch_size=8, bag_window=2)
   for i in range(8):
-    print(batch[i], [reverse_dictionary[batch[i][x]] for x in range(span-1)], '->', labels[i, 0],
+    print(batch[i], [reverse_dictionary[batch[i][x]] for x in range(4)], '->', labels[i, 0],
           reverse_dictionary[labels[i, 0]])
 
   # Step 4: Build and train a skip-gram model.
@@ -175,6 +175,7 @@ def word2vec_basic(log_dir):
       with tf.name_scope('embeddings'):
         embeddings = tf.Variable(
             tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
+        embed=tf.Variable(tf.zeros([batch_size]))
         for j in range(bag_window*2):
           embed += tf.nn.embedding_lookup(embeddings, train_inputs[:,j])
         embed=embed/(2*bag_window)

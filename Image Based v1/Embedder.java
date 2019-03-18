@@ -22,10 +22,13 @@ public class Embedder
         File imgFile = new File(message[0]);
         BufferedImage cover=ImageIO.read(imgFile);
         BufferedImage steganogram=embed(cover,message[1]);
-        if(!ImageIO.write(steganogram,"png",new File("./ComGen.png")))
-            System.out.println("Error! Steganogram not stored.");
+        if(steganogram!=null)
+            if(!ImageIO.write(steganogram,"png",new File("./ComGen.png")))
+                System.out.println("Error! Steganogram not stored.");
+            else
+                System.out.println("\nSteganogram saved successfully.");
         else
-            System.out.println("\nSteganogram saved successfully.");
+            System.out.println("Try a larger image.");
     }
     /*
     Using String does not serve well when trying to embed messages which are very long ( beyond 4096 characters long on my
@@ -62,7 +65,7 @@ public class Embedder
             // System.out.println("Original RGB:"+((long)img.getRGB(x,y) & 0xffffffffL));
             char c_norm=(char)String.valueOf((char)c).toUpperCase().charAt(0);
             if((pixel=alterPixel(c_norm,img.getRGB(x,y)))==Long.MAX_VALUE)
-            //this check looks allows the while loop to over characters outside this 32 character alphabet.
+            //this check looks allows the while loop to overlook characters outside this 32 character alphabet.
                 continue;
             img.setRGB(x,y,(int)pixel);
             y=y+1;
@@ -73,7 +76,13 @@ public class Embedder
             }
             sent_message=sent_message+String.valueOf(c);//debugging
         }
-        img.setRGB(x,y,(int)alterPixel((char)eom,img.getRGB(x,y)));
+        if(x!=x_lim)
+            img.setRGB(x,y,(int)alterPixel((char)eom,img.getRGB(x,y)));
+        else
+        {
+            System.out.println("...\n\nError! Image too small.");
+            return null;
+        }
         return img;
     }
     static long alterPixel(char c, long k)

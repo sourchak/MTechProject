@@ -1,0 +1,2 @@
+model_checkpoint_path: "/Users/islab-15/Code/MTechProject/Word2Vec/log/model.ckpt"
+all_model_checkpoint_paths: "/Users/islab-15/Code/MTechProject/Word2Vec/log/model.ckpt"
