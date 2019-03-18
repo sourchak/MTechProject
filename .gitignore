@@ -2,4 +2,4 @@
 *.png
 *.txt
 *.log
-.*
+.DS_Store
