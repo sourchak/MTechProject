@@ -108,24 +108,26 @@ def word2vec_basic(log_dir):
   print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
 
   # Step 3: Function to generate a training batch for the skip-gram model.
-  def generate_batch(batch_size, num_skips, skip_window):
+  def generate_batch(batch_size, bag_window):
     global data_index
-    assert batch_size % num_skips == 0
-    assert num_skips <= 2 * skip_window
-    batch = np.ndarray(shape=(batch_size), dtype=np.int32)
+    # assert batch_size % num_skips == 0
+    # assert num_skips <= 2 * skip_window
+    batch = np.ndarray(shape=(batch_size,2*bag_window), dtype=np.int32)
     labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
-    span = 2 * skip_window + 1  # [ skip_window target skip_window ]
+    span = 2 * bag_window + 1  # [ skip_window target skip_window ]
     buffer = collections.deque(maxlen=span)  # pylint: disable=redefined-builtin
     if data_index + span > len(data):
       data_index = 0
     buffer.extend(data[data_index:data_index + span])
     data_index += span
-    for i in range(batch_size // num_skips):
-      context_words = [w for w in range(span) if w != skip_window]
-      words_to_use = random.sample(context_words, num_skips)
-      for j, context_word in enumerate(words_to_use):
-        batch[i * num_skips + j] = buffer[skip_window]
-        labels[i * num_skips + j, 0] = buffer[context_word]
+    for i in range(batch_size):
+      context_words = [buffer[w] for w in range(span) if w != bag_window]
+      # words_to_use = random.sample(context_words, num_skips)
+      # for j, context_word in enumerate(words_to_use):
+      #   batch[i * num_skips + j] = buffer[skip_window] 
+      #   labels[i * num_skips + j, 0] = buffer[context_word] 
+      batch[i]=context_words
+      labels[i,0]=buffer[bag_window]
       if data_index == len(data):
         buffer.extend(data[0:span])
         data_index = span
@@ -136,17 +138,17 @@ def word2vec_basic(log_dir):
     data_index = (data_index + len(data) - span) % len(data)
     return batch, labels
 
-  batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1)
+  batch, labels = generate_batch(batch_size=8, bag_window=2)
   for i in range(8):
-    print(batch[i], reverse_dictionary[batch[i]], '->', labels[i, 0],
+    print(batch[i], [reverse_dictionary[batch[i][x]] for x in range(span-1)], '->', labels[i, 0],
           reverse_dictionary[labels[i, 0]])
 
   # Step 4: Build and train a skip-gram model.
 
   batch_size = 128
   embedding_size = 128  # Dimension of the embedding vector.
-  skip_window = 1  # How many words to consider left and right.
-  num_skips = 2  # How many times to reuse an input to generate a label.
+  bag_window = 2  # How many words to consider left and right.
+  # num_skips = 2  # How many times to reuse an input to generate a label.
   num_sampled = 64  # Number of negative examples to sample.
 
   # We pick a random validation set to sample nearest neighbors. Here we limit
@@ -163,7 +165,7 @@ def word2vec_basic(log_dir):
 
     # Input data.
     with tf.name_scope('inputs'):
-      train_inputs = tf.placeholder(tf.int32, shape=[batch_size])
+      train_inputs = tf.placeholder(tf.int32, shape=[batch_size,bag_window*2])
       train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
       valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
 
@@ -173,7 +175,9 @@ def word2vec_basic(log_dir):
       with tf.name_scope('embeddings'):
         embeddings = tf.Variable(
             tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
-        embed = tf.nn.embedding_lookup(embeddings, train_inputs)
+        for j in range(bag_window*2):
+          embed += tf.nn.embedding_lookup(embeddings, train_inputs[:,j])
+        embed=embed/(2*bag_window)
 
       # Construct the variables for the NCE loss
       with tf.name_scope('weights'):
@@ -236,8 +240,7 @@ def word2vec_basic(log_dir):
 
     average_loss = 0
     for step in xrange(num_steps):
-      batch_inputs, batch_labels = generate_batch(batch_size, num_skips,
-                                                  skip_window)
+      batch_inputs, batch_labels = generate_batch(batch_size, bag_window)
       feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
 
       # Define metadata variable.
