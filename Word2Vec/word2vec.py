@@ -31,13 +31,76 @@ import numpy as np
 from six.moves import urllib
 from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
+import string
 
 from tensorflow.contrib.tensorboard.plugins import projector
 
 data_index = 0
 
 
-def word2vec_basic(log_dir):
+def cover_context_generator():
+    bag_window=2
+    skip_window=bag_window
+    
+    f=open('./aesop10.txt','r')
+    l=list(f)
+    original_text=[]
+    for x in l:
+        original_text=original_text+x.split(' ')
+    n_wordLine=len(original_text)
+    new_text=[]
+    # print original_text
+    pos=string.punctuation.find('.') # position of the period
+    punc_Period=string.punctuation[0:pos]+string.punctuation[pos+1:] # removes period from string.punctuation
+
+    for x in original_text:
+    # apparently the best way to remove punctuations
+    # https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
+    # unpunctuated_str=string.translate(x,None,string.punctuation)
+        perioded_str=string.translate(x,None,punc_Period) # removes all punctuations except period
+    # noNewLine_str=string.replace(unpunctuated_str,'\n','')
+        noNewLine_perioded_str=string.replace(perioded_str,'\n','') # replace newline with empty string
+        noNewLine_perioded_str=string.replace(noNewLine_perioded_str,'\r','')
+        # new_text=new_text+[noNewLine_str]
+        
+        # new_text is a list of words where newline is replaced by '' and punctuations except '.' have been removed
+        new_text=new_text+[noNewLine_perioded_str]
+    
+    
+    word_to_context=dict()
+    assert n_wordLine==len(new_text)
+    # print new_text
+    x=0
+    while x < n_wordLine :
+        if x-skip_window>-1 and x+skip_window<n_wordLine and new_text[x]!='' and new_text[x][-1:]!='.':
+            buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] #[m words][x][m words]
+            flag=True
+            i=0
+            while i<len(buffer) and flag==True:
+                if i!=len(buffer)-1 and buffer[i][-1:]!='.' and buffer[i]!='':
+                    i=i+1
+                elif i==len(buffer)-1 and buffer[i]!='':
+                    if buffer[i][-1:]=='.':
+                        buffer[i]=buffer[i][:-1]
+                    i=i+1
+                else:
+                    flag=False
+            if flag==True:
+                word_to_context[x]=buffer
+                print("Buffer "+str(x))
+                print(buffer)
+                x=x+skip_window
+            else:
+                flag=True
+        x=x+1
+    locations=word_to_context.keys() # locations to encrypt
+    # print word_to_context
+    # print "Length of word_to_context="+ str(len(word_to_context))
+    # print "Locations to encrypt: " +  str(locations)
+    return word_to_context
+
+
+def word2vec_basic(log_dir,choice):
   """Example of building, training and visualizing a word2vec model."""
   # Create the directory for TensorBoard variables if there is not.
   if not os.path.exists(log_dir):
@@ -168,6 +231,7 @@ def word2vec_basic(log_dir):
       train_inputs = tf.placeholder(tf.int32, shape=[batch_size,bag_window*2])
       train_labels = tf.placeholder(tf.int32, shape=[batch_size, 1])
       valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
+      encrypt_batch=tf.placeholder(tf.int32,shape=[None,bag_window*2]) #cover_size is the number of encryption positions found in the cover
 
     # Ops and variables pinned to the CPU because of missing GPU implementation
     with tf.device('/cpu:0'):
@@ -175,10 +239,14 @@ def word2vec_basic(log_dir):
       with tf.name_scope('embeddings'):
         embeddings = tf.Variable(
             tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
-        embed=tf.Variable(tf.zeros([batch_size]))
+        embed=tf.Variable(tf.zeros([batch_size,embedding_size]))
         for j in range(bag_window*2):
-          embed += tf.nn.embedding_lookup(embeddings, train_inputs[:,j])
+          embed =embed + tf.nn.embedding_lookup(embeddings, train_inputs[:,j])
         embed=embed/(2*bag_window)
+        encrpt_embed=tf.Variable(tf.zeros([batch_size,embedding_size]))
+        for j in range(bag_window*2):
+            encrpt_embed=encrpt_embed+tf.nn.embedding_lookup(embeddings,encrypt_batch[:,j])
+        encrpt_embed=encrpt_embed/(2*bag_window)
 
       # Construct the variables for the NCE loss
       with tf.name_scope('weights'):
@@ -216,9 +284,10 @@ def word2vec_basic(log_dir):
     normalized_embeddings = embeddings / norm
     valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,
                                               valid_dataset)
+
     similarity = tf.matmul(
         valid_embeddings, normalized_embeddings, transpose_b=True)
-
+    predictor=tf.sigmoid(tf.matmul(encrpt_embed,normalized_embeddings,transpose_b=True))
     # Merge all summaries.
     merged = tf.summary.merge_all()
 
@@ -230,115 +299,136 @@ def word2vec_basic(log_dir):
 
   # Step 5: Begin training.
   num_steps = 100001
+  if choice == 'train':
+      with tf.Session(graph=graph) as session:
+        # Open a writer to write summaries.
+        writer = tf.summary.FileWriter(log_dir, session.graph)
 
-  with tf.Session(graph=graph) as session:
-    # Open a writer to write summaries.
-    writer = tf.summary.FileWriter(log_dir, session.graph)
+        # We must initialize all variables before we use them.
+        init.run()
+        print('Initialized')
 
-    # We must initialize all variables before we use them.
-    init.run()
-    print('Initialized')
-
-    average_loss = 0
-    for step in xrange(num_steps):
-      batch_inputs, batch_labels = generate_batch(batch_size, bag_window)
-      feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
-
-      # Define metadata variable.
-      run_metadata = tf.RunMetadata()
-
-      # We perform one update step by evaluating the optimizer op (including it
-      # in the list of returned values for session.run()
-      # Also, evaluate the merged op to get all summaries from the returned
-      # "summary" variable. Feed metadata variable to session for visualizing
-      # the graph in TensorBoard.
-      _, summary, loss_val = session.run([optimizer, merged, loss],
-                                         feed_dict=feed_dict,
-                                         run_metadata=run_metadata)
-      average_loss += loss_val
-
-      # Add returned summaries to writer in each step.
-      writer.add_summary(summary, step)
-      # Add metadata to visualize the graph for the last run.
-      if step == (num_steps - 1):
-        writer.add_run_metadata(run_metadata, 'step%d' % step)
-
-      if step % 2000 == 0:
-        if step > 0:
-          average_loss /= 2000
-        # The average loss is an estimate of the loss over the last 2000
-        # batches.
-        print('Average loss at step ', step, ': ', average_loss)
         average_loss = 0
+        for step in xrange(num_steps):
+          batch_inputs, batch_labels = generate_batch(batch_size, bag_window)
+          feed_dict = {train_inputs: batch_inputs, train_labels: batch_labels}
 
-      # Note that this is expensive (~20% slowdown if computed every 500 steps)
-      if step % 10000 == 0:
-        sim = similarity.eval()
-        for i in xrange(valid_size):
-          valid_word = reverse_dictionary[valid_examples[i]]
-          top_k = 8  # number of nearest neighbors
-          nearest = (-sim[i, :]).argsort()[1:top_k + 1]
-          log_str = 'Nearest to %s:' % valid_word
-          for k in xrange(top_k):
-            close_word = reverse_dictionary[nearest[k]]
-            log_str = '%s %s,' % (log_str, close_word)
-          print(log_str)
-    final_embeddings = normalized_embeddings.eval()
+          # Define metadata variable.
+          run_metadata = tf.RunMetadata()
 
-    # Write corresponding labels for the embeddings.
-    with open(log_dir + '/metadata.tsv', 'w') as f:
-      for i in xrange(vocabulary_size):
-        f.write(reverse_dictionary[i] + '\n')
+          # We perform one update step by evaluating the optimizer op (including it
+          # in the list of returned values for session.run()
+          # Also, evaluate the merged op to get all summaries from the returned
+          # "summary" variable. Feed metadata variable to session for visualizing
+          # the graph in TensorBoard.
+          _, summary, loss_val = session.run([optimizer, merged, loss],
+                                             feed_dict=feed_dict,
+                                             run_metadata=run_metadata)
+          average_loss += loss_val
 
-    # Save the model for checkpoints.
-    saver.save(session, os.path.join(log_dir, 'model.ckpt'))
+          # Add returned summaries to writer in each step.
+          writer.add_summary(summary, step)
+          # Add metadata to visualize the graph for the last run.
+          if step == (num_steps - 1):
+            writer.add_run_metadata(run_metadata, 'step%d' % step)
 
-    # Create a configuration for visualizing embeddings with the labels in
-    # TensorBoard.
-    config = projector.ProjectorConfig()
-    embedding_conf = config.embeddings.add()
-    embedding_conf.tensor_name = embeddings.name
-    embedding_conf.metadata_path = os.path.join(log_dir, 'metadata.tsv')
-    projector.visualize_embeddings(writer, config)
+          if step % 2000 == 0:
+            if step > 0:
+              average_loss /= 2000
+            # The average loss is an estimate of the loss over the last 2000
+            # batches.
+            print('Average loss at step ', step, ': ', average_loss)
+            average_loss = 0
 
-  writer.close()
+          # Note that this is expensive (~20% slowdown if computed every 500 steps)
+          if step % 100000 == 0:
+            sim = similarity.eval()
+            for i in xrange(valid_size):
+              valid_word = reverse_dictionary[valid_examples[i]]
+              top_k = 8  # number of nearest neighbors
+              nearest = (-sim[i, :]).argsort()[1:top_k + 1]
+              log_str = 'Nearest to %s:' % valid_word
+              for k in xrange(top_k):
+                close_word = reverse_dictionary[nearest[k]]
+                log_str = '%s %s,' % (log_str, close_word)
+              print(log_str)
+        final_embeddings = normalized_embeddings.eval()
+        print(final_embeddings[:8,:10])
+        # Write corresponding labels for the embeddings.
+        with open(log_dir + '/metadata.tsv', 'w') as f:
+          for i in xrange(vocabulary_size):
+            f.write(reverse_dictionary[i] + '\n')
 
-  # Step 6: Visualize the embeddings.
+        # Save the model for checkpoints.
+        saver.save(session, os.path.join(log_dir, 'model.ckpt'))
 
-  # pylint: disable=missing-docstring
-  # Function to draw visualization of distance between embeddings.
-  def plot_with_labels(low_dim_embs, labels, filename):
-    assert low_dim_embs.shape[0] >= len(labels), 'More labels than embeddings'
-    plt.figure(figsize=(18, 18))  # in inches
-    for i, label in enumerate(labels):
-      x, y = low_dim_embs[i, :]
-      plt.scatter(x, y)
-      plt.annotate(
-          label,
-          xy=(x, y),
-          xytext=(5, 2),
-          textcoords='offset points',
-          ha='right',
-          va='bottom')
+        # Create a configuration for visualizing embeddings with the labels in
+        # TensorBoard.
+        config = projector.ProjectorConfig()
+        embedding_conf = config.embeddings.add()
+        embedding_conf.tensor_name = embeddings.name
+        embedding_conf.metadata_path = os.path.join(log_dir, 'metadata.tsv')
+        projector.visualize_embeddings(writer, config)
+      writer.close()
+      # Step 6: Visualize the embeddings.
 
-    plt.savefig(filename)
+      # pylint: disable=missing-docstring
+      # Function to draw visualization of distance between embeddings.
+      def plot_with_labels(low_dim_embs, labels, filename):
+        assert low_dim_embs.shape[0] >= len(labels), 'More labels than embeddings'
+        plt.figure(figsize=(18, 18))  # in inches
+        for i, label in enumerate(labels):
+          x, y = low_dim_embs[i, :]
+          plt.scatter(x, y)
+          plt.annotate(
+              label,
+              xy=(x, y),
+              xytext=(5, 2),
+              textcoords='offset points',
+              ha='right',
+              va='bottom')
 
-  try:
-    # pylint: disable=g-import-not-at-top
-    from sklearn.manifold import TSNE
-    import matplotlib.pyplot as plt
+        plt.savefig(filename)
 
-    tsne = TSNE(
-        perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
-    plot_only = 500
-    low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
-    labels = [reverse_dictionary[i] for i in xrange(plot_only)]
-    plot_with_labels(low_dim_embs, labels, os.path.join(gettempdir(),
-                                                        'tsne.png'))
+      try:
+        # pylint: disable=g-import-not-at-top
+        from sklearn.manifold import TSNE
+        import matplotlib.pyplot as plt
 
-  except ImportError as ex:
-    print('Please install sklearn, matplotlib, and scipy to show embeddings.')
-    print(ex)
+        tsne = TSNE(
+            perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
+        plot_only = 500
+        low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
+        labels = [reverse_dictionary[i] for i in xrange(plot_only)]
+        plot_with_labels(low_dim_embs, labels, os.path.join(gettempdir(),
+                                                            'tsne.png'))
+      
+      except ImportError as ex:
+        print('Please install sklearn, matplotlib, and scipy to show embeddings.')
+        print(ex)
+  else:
+    with tf.Session(graph=graph) as session:
+        saver.restore(session,os.path.join(log_dir,'model.ckpt'))
+        print(normalized_embeddings.eval()[:8,0:10])
+        encrpt_batch=cover_context_generator()
+        locs=list()
+        locs_context=list()
+        for x in encrpt_batch.keys():
+            locs=locs+[x]
+            locs_context=locs_context+[[unused_dictionary[y] if unused_dictionary.has_key(y) else 0 for y in encrpt_batch[x]]]
+        x=0
+        for i in range(1,len(locs)//128):
+            feed_dict={encrypt_batch:locs_context[(i-1)*128:i*128]}
+            predictions=predictor.eval(feed_dict=feed_dict)
+            #print('Predictions', predictions)
+            for j in range(128):
+                top_candidates=(-predictions[j,:]).argsort()[:8]
+                log_str = 'Nearest to %s ->[%s, %s, %s,%s]'%(str(locs[x]),reverse_dictionary[locs_context[x][0]],reverse_dictionary[locs_context[x][1]],reverse_dictionary[locs_context[x][2]],reverse_dictionary[locs_context[x][3]])
+                for k in range(8):
+                    close_word = reverse_dictionary[top_candidates[k]]
+                    log_str = '%s %s,' % (log_str, close_word)
+                x=x+1
+            print(log_str)
 
 
 # All functionality is run after tf.app.run() (b/122547914). This could be split
@@ -347,15 +437,20 @@ def main(unused_argv):
   # Give a folder path as an argument with '--log_dir' to save
   # TensorBoard summaries. Default is a log folder in current directory.
   current_path = os.path.dirname(os.path.realpath(sys.argv[0]))
-
   parser = argparse.ArgumentParser()
   parser.add_argument(
       '--log_dir',
       type=str,
       default=os.path.join(current_path, 'log'),
       help='The log directory for TensorBoard summaries.')
+  parser.add_argument(
+       '--choice',
+       type=str,
+       default='train',
+       help='Mode of operation.')
   flags, unused_flags = parser.parse_known_args()
-  word2vec_basic(flags.log_dir)
+  word2vec_basic(flags.log_dir,flags.choice)
+  word2vec_basic(flags.log_dir,'eval')
 
 if __name__ == '__main__':
   tf.app.run()
