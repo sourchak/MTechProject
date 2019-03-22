@@ -407,14 +407,19 @@ def word2vec_basic(log_dir,choice):
         print('Please install sklearn, matplotlib, and scipy to show embeddings.')
         print(ex)
   else:
+      # TO DO: Take the encryption stream.
+      # convert the stream into octal.
+      # embed the choices in the cover.
+      # Store the cover.
+      # Perform inverse operation.
     with tf.Session(graph=graph) as session:
         saver.restore(session,os.path.join(log_dir,'model.ckpt'))
         print(normalized_embeddings.eval()[:8,0:10])
         encrpt_batch=cover_context_generator()
         locs=list()
         locs_context=list()
-        for x in encrpt_batch.keys():
-            locs=locs+[x]
+        locs=sorted(encrpt_batch)
+        for x in locs:
             locs_context=locs_context+[[unused_dictionary[y] if unused_dictionary.has_key(y) else 0 for y in encrpt_batch[x]]]
         x=0
         for i in range(1,len(locs)//128):
