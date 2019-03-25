@@ -65,10 +65,11 @@ def preprocessing(cover):
     return cover_text, word_to_context
 
 
-def cover_preprocessing():
+def cover_preprocessing(option):
     cover=None
+    strng='Path to %s text: '%option
     while not cover:
-        cover_path=raw_input('Path to cover text: ')
+        cover_path=raw_input(strng)
         try:
             if path.exists(path.abspath(cover_path)):
                 cover=open(path.abspath(cover_path),'r')
@@ -80,39 +81,80 @@ def cover_preprocessing():
                     print(loc_contexts[x])
                 return cover_text,loc_contexts
             else:
-                print('Cover text file does not exist, or you do not have required premissions on the file.')
+                print(option.capitalize() +' text file does not exist, or you do not have required premissions on the file.')
         except IOError:
             print('An error occured while trying to read the cover file.')
 
 def octalify(raw_message):
     # convert the message to its special octal form 
-    return message
+    return raw_message
+
+def inv_octalify(octal_message):
+    return octal_message
 
 def read_message():
     message_file=raw_input('Path to message: ')
     if path.exists(path.abspath(message_file)):
-        raw_message=open(path.abspath(message_file))
-        message=octalify(raw_message)
+        raw_message=open(path.abspath(message_file),'r')
+        message=octalify(list(raw_message))
         return message
     else:
         print('Message file does not exist, or you do not have required permissions on the file')
+
+def word2vecEvaluator(log,context):
+    return ['0','1','2','3','4','5','6','7']
 
 def embed(cover_text,loc_contexts,message):
     # TO DO: This will use word2vec to make the predictions and store them in
     # dictionary loc_words.
     loc_words=dict()
     msg_ptr=0
-    for loc in sorted(loc_contexts) and msg_ptr<len(message):
-        words=word2vec(log,eval)
-        loc_words[loc]=words[int(message[msg_ptr])]
-        msg_ptr=msg_ptr+1
-    for loc in loc_words:
+    end=0
+    log='' # this will be changed once word2vec is mereged with this.
+    message_vec=list(message[0]) # temporary
+    for loc in sorted(loc_contexts):
+        if msg_ptr<len(message_vec):
+            words=word2vecEvaluator(log,loc_contexts[loc])
+            # print('loc='+str(loc), msg_ptr, message_vec[msg_ptr])
+            loc_words[loc]=words[int(message_vec[msg_ptr])]
+            msg_ptr=msg_ptr+1
+            end=loc
+    #TO DO: Take care of End of Message decided to be 777 in octal
+    for loc in sorted(loc_words):
+        # print('loc='+str(loc))
         cover_text[loc]=loc_words[loc]
+        if loc==end:
+            break
     embedded_msg=' '.join(cover_text)
     with open('Encrypted_Message.txt','w') as steganogram:
         steganogram.write(embedded_msg)
 
 
-cover_text, loc_contexts=cover_preprocessing()
-message=read_message()
-embed(cover_text,loc_contexts,message)
+def extractor(cover_text,loc_contexts):
+    flag=True
+    log='' # like embed, this too will be changed once word2vec is merged 
+    consec_seven=0 #to keep track of consecutive 7s, 3 7s assumed to signal message end
+    for loc in sorted(loc_contexts):
+        if flag:
+            words=word2vecEvaluator(log,loc_contexts[loc])
+            pos=words.find(cover_text[loc])
+            octal_message=octal_message+str(pos)
+            if pos==7:
+                consec_seven=consec_seven+1
+                if consec_seven==3:
+                    flag=False
+            else: cosec_seven=0
+    message=inv_octalify(octal_message)
+    with open('Extracted_Message.txt','w') as extrctd_msg:
+        extrctd_msg.write(message)
+    return message
+
+
+choice=raw_input('embed or extract: ')
+if choice=='embed':
+    cover_text, loc_contexts=cover_preprocessing('cover')
+    message=read_message()
+    embed(cover_text,loc_contexts,message)
+elif choice=='extract':
+    cover_text,loc_contexts=cover_preprocessing('stego')
+    message=extract(cover_text,loc_contexts)
