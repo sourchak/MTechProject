@@ -237,7 +237,10 @@ def word2vec_basic(log_dir,choice):
         with tf.device('/cpu:0'):
             # Look up embeddings for inputs.
             with tf.name_scope('embeddings'):
-                embeddings = tf.Variable(tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
+                embeddings = tf.Variable(tf.random_uniform([vocabulary_size,
+                                                            embedding_size],
+                                                           -1.0,
+                                                           1.0),name='embeddings')
                 embed=tf.Variable(tf.zeros([batch_size,embedding_size]))
             for j in range(bag_window*2):
                 embed =embed + tf.nn.embedding_lookup(embeddings, train_inputs[:,j])

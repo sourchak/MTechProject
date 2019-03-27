@@ -1,9 +1,27 @@
 from __future__ import print_function
+
+
 from os import path
 import string
+import tensorflow as tf
+import collections
+import math
+import sys
+import numpy as np
+import argparse
+import zipfile
+from tempfile import gettempdir
+from six.moves import urllib
+from six.moves import xrange
 
 
 skip_window=2
+eom=4
+alpha_offset=10
+punc_offset=36
+ch_width=2
+tot_supprtd_char=62
+embedding_size=128
 
 
 def preprocessing(cover):
@@ -93,10 +111,10 @@ def octalify(raw_message):
         if x.isdigit():
             message=message+str(oct(ord(x)-ord('0')))[1:].rjust(2,'0') # 0,1,2,3,4,5,6,7,8,9 for digits
         elif x.isalpha():
-            message=message+str(oct(ord(x.upper())-ord('A')+10))[1:] # 10,11,12,... for alphabets
+            message=message+str(oct(ord(x.upper())-ord('A')+alpha_offset))[1:] # 10,11,12,... for alphabets
         elif x in punc:
             #print('Inside octalify: '+str(oct(punc.find(x)+36))[1:])
-            message=message+str(oct(punc.find(x)+36))[1:]
+            message=message+str(oct(punc.find(x)+punc_offset))[1:]
         else:
             print(x+' is an unsupported character.')
     message=message+'7777' # boundary condition
@@ -111,12 +129,12 @@ def inv_octalify(octal_message):
     while x<len(octal_message):
         #print(octal_message[x:x+2])
         m=int(octal_message[x:x+2],8)
-        if m<10:
+        if m<alpha_offset:
             message=message+chr(m+ord('0'))
-        elif m<36:
-            message=message+chr(m+ord('A')-10)
-        elif m<62:
-            message=message+punc[m-36]
+        elif m<punc_offset:
+            message=message+chr(m+ord('A')-alpha_offset)
+        elif m<tot_supprtd_char:
+            message=message+punc[m-punc_offset]
         x=x+2
     return message
 
@@ -129,8 +147,42 @@ def read_message():
     else:
         print('Message file does not exist, or you do not have required permissions on the file')
 
-def word2vecEvaluator(log,context):
-    return ['0','1','2','3','4','5','6','7']
+def word2vecEvaluator(log,contexts):
+    all_words=list()
+    words_codes=dict()
+    if path.exists(path.join(log,'metadata.tsv')):
+        all_words=list(open(path.join(log,'metadata.tsv')))
+    for i in range(0,len(all_words)):
+        all_words[i]=all_words[i].translate(None,'\n')
+        words_codes[all_words[i]]=i
+    coded_contexts=dict()
+    for i in sorted(contexts):
+        coded_contexts[i]=[ words_codes[x] if x in all_words else 0 for x in contexts[i] ]
+    # print(coded_contexts)
+    embeddings=tf.get_variable("embeddings/embeddings",shape=[len(all_words),embedding_size])
+    norm=tf.reduce_sum(embeddings,1,keepdims=True)
+    normalized_embeddings=embeddings/norm
+    saver=tf.train.Saver()
+    locs=sorted(coded_contexts)
+    context_vecs=tf.placeholder(tf.float32,[len(locs),embedding_size])
+    ids=tf.placeholder(tf.int32,[2*skip_window])
+    req_embeddings=tf.nn.embedding_lookup(normalized_embeddings,ids)
+    #for i in range(0,len(locs)):
+    #    embeddings=tf.nn.embedding_lookup(normalized_embeddings,tf.convert_to_tensor(coded_contexts[locs[i]]))
+    #    print(np.shape(embeddings))
+    #    context_vecs[i]=
+    predictor=tf.sigmoid(tf.matmul(context_vecs,normalized_embeddings,transpose_b=True))
+    with tf.Session() as session:
+        saver.restore(session,path.join(log,'model.ckpt'))
+        context_sum=np.zeros((len(locs),embedding_size))
+        for i in range(0,len(locs)):
+            context_sum[i]=tf.reduce_sum(req_embeddings,0).eval(feed_dict={ids:coded_contexts[locs[i]]}) /(2*skip_window)
+        giant_prediction=-(predictor.eval(feed_dict={context_vecs:context_sum}))
+        selected_words=dict()
+        for i in range(0,len(locs)):
+            selected_code_words=giant_prediction[i].argsort()[:8]
+            selected_words[locs[i]]=[all_words[x] for x in selected_code_words]
+    return selected_words
 
 def embed(cover_text,loc_contexts,message):
     # TO DO: This will use word2vec to make the predictions and store them in
@@ -138,15 +190,15 @@ def embed(cover_text,loc_contexts,message):
     loc_words=dict()
     msg_ptr=0
     end=0
-    log='' # this will be changed once word2vec is mereged with this.
+    log=path.abspath(raw_input('Path to log_dir: ')) # this will be changed once word2vec is mereged with this.
+    words=word2vecEvaluator(log,loc_contexts)
     for loc in sorted(loc_contexts):
         if msg_ptr<len(message):
-            words=word2vecEvaluator(log,loc_contexts[loc])
             # print('loc='+str(loc), msg_ptr, message_vec[msg_ptr])
-            loc_words[loc]=words[int(message[msg_ptr])]
+            loc_words[loc]=words[loc][int(message[msg_ptr])]
             msg_ptr=msg_ptr+1
             end=loc
-    #TO DO: Take care of End of Message decided to be 7777 in octal
+    #Octalify takes care of End of Message decided to be 7777 in octal
     for loc in sorted(loc_words):
         # print('loc='+str(loc))
         cover_text[loc]=loc_words[loc]
@@ -159,13 +211,13 @@ def embed(cover_text,loc_contexts,message):
 
 def extractor(cover_text,loc_contexts):
     flag=True
-    log='' # like embed, this too will be changed once word2vec is merged 
+    log=path.abspath(raw_input('Path to log_dir: ')) # like embed, this too will be changed once word2vec is merged 
     consec_seven=0 #to keep track of consecutive 7s, 4 7s assumed to signal message end
     octal_message=''
+    words=word2vecEvaluator(log,loc_contexts)
     for loc in sorted(loc_contexts):
         if flag:
-            words=word2vecEvaluator(log,loc_contexts[loc])
-            pos=words.index(cover_text[loc])
+            pos=words[loc].index(cover_text[loc])
             octal_message=octal_message+str(pos)
             if pos==7:
                 if len(octal_message)%2==1 and consec_seven==0:
