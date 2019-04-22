@@ -160,7 +160,9 @@ def word2vecEvaluator(log,contexts):
         coded_contexts[i]=[ words_codes[x] if x in all_words else 0 for x in contexts[i] ]
     # print(coded_contexts)
     embeddings=tf.get_variable("embeddings/embeddings",shape=[len(all_words),embedding_size])
-    norm=tf.reduce_sum(embeddings,1,keepdims=True)
+    weights=tf.get_variable("weights/weights",shape=[len(all_words),embedding_size])
+    biases=tf.get_variable("biases/biases",shape=[len(all_words)])
+    norm=tf.sqrt(tf.reduce_sum(tf.square(embeddings),1,keepdims=True))
     normalized_embeddings=embeddings/norm
     saver=tf.train.Saver()
     locs=sorted(coded_contexts)
@@ -171,16 +173,17 @@ def word2vecEvaluator(log,contexts):
     #    embeddings=tf.nn.embedding_lookup(normalized_embeddings,tf.convert_to_tensor(coded_contexts[locs[i]]))
     #    print(np.shape(embeddings))
     #    context_vecs[i]=
-    predictor=tf.sigmoid(tf.matmul(context_vecs,normalized_embeddings,transpose_b=True))
+    predictor=tf.nn.bias_add(tf.matmul(context_vecs,weights,transpose_b=True),biases)
     with tf.Session() as session:
         saver.restore(session,path.join(log,'model.ckpt'))
         context_sum=np.zeros((len(locs),embedding_size))
+        #print(normalized_embeddings.eval()[:8,:10])
         for i in range(0,len(locs)):
             context_sum[i]=tf.reduce_sum(req_embeddings,0).eval(feed_dict={ids:coded_contexts[locs[i]]}) /(2*skip_window)
-        giant_prediction=-(predictor.eval(feed_dict={context_vecs:context_sum}))
+        giant_prediction=predictor.eval(feed_dict={context_vecs:context_sum})
         selected_words=dict()
         for i in range(0,len(locs)):
-            selected_code_words=giant_prediction[i].argsort()[:8]
+            selected_code_words=(-giant_prediction[i]).argsort()[:8]
             selected_words[locs[i]]=[all_words[x] for x in selected_code_words]
     return selected_words
 

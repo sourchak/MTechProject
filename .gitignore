@@ -3,3 +3,6 @@
 *.txt
 *.log
 .DS_Store
+me.py
+*.zip
+inspect_checkpoint.py

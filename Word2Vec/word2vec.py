@@ -244,17 +244,24 @@ def word2vec_basic(log_dir,choice):
                 embed=tf.Variable(tf.zeros([batch_size,embedding_size]))
             for j in range(bag_window*2):
                 embed =embed + tf.nn.embedding_lookup(embeddings, train_inputs[:,j])
+            #cbow_norm=tf.sqrt(tf.reduce_sum(tf.square(embed),1,keepdims=True))
+            #embed=embed/(cbow_norm) #normalizations is fruitless
             embed=embed/(2*bag_window)
             encrpt_embed=tf.Variable(tf.zeros([batch_size,embedding_size]))
             for j in range(bag_window*2):
                 encrpt_embed=encrpt_embed+tf.nn.embedding_lookup(embeddings,encrypt_batch[:,j])
             encrpt_embed=encrpt_embed/(2*bag_window)
+            #cbow_norm_encrpt=tf.sqrt(tf.reduce_sum(tf.square(encrpt_embed),1,keepdims=True))
+            #encrpt_embed=encrpt_embed/cbow_norm_encrpt #normalization is fruitless
 
         # Construct the variables for the NCE loss
         with tf.name_scope('weights'):
-            nce_weights = tf.Variable(tf.truncated_normal([vocabulary_size, embedding_size],stddev=1.0 / math.sqrt(embedding_size)))
+            nce_weights = tf.Variable(tf.truncated_normal([vocabulary_size,
+                                                           embedding_size],stddev=1.0
+                                                          /
+                                                          math.sqrt(embedding_size)),name='weights')
         with tf.name_scope('biases'):
-            nce_biases = tf.Variable(tf.zeros([vocabulary_size]))
+            nce_biases = tf.Variable(tf.zeros([vocabulary_size]),name='biases')
 
         # Compute the average NCE loss for the batch.
         # tf.nce_loss automatically draws a new sample of the negative labels each
@@ -262,13 +269,17 @@ def word2vec_basic(log_dir,choice):
         # Explanation of the meaning of NCE loss:
         #   http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-model/
         with tf.name_scope('loss'):
-            loss = tf.reduce_mean(tf.nn.nce_loss(weights=nce_weights,biases=nce_biases,labels=train_labels,inputs=embed,num_sampled=num_sampled,num_classes=vocabulary_size))
+            loss =tf.reduce_mean(tf.nn.nce_loss(weights=nce_weights,biases=nce_biases,labels=train_labels,inputs=embed,num_sampled=num_sampled,num_classes=vocabulary_size,partition_strategy='div'))
         # Add the loss value as a scalar to summary.
         tf.summary.scalar('loss', loss)
 
+        with tf.name_scope('learning_rate'):
+            strt_learning_rate=1.0
+            global_step=tf.Variable(0)
+            learning_rate=tf.train.exponential_decay(strt_learning_rate,global_step,20000,0.7,staircase=True)
         # Construct the SGD optimizer using a learning rate of 1.0.
         with tf.name_scope('optimizer'):
-            optimizer = tf.train.GradientDescentOptimizer(1.0).minimize(loss)
+            optimizer =tf.train.GradientDescentOptimizer(learning_rate).minimize(loss,global_step=global_step)
 
         # Compute the cosine similarity between minibatch examples and all
         # embeddings.
@@ -278,7 +289,8 @@ def word2vec_basic(log_dir,choice):
                                               valid_dataset)
 
         similarity = tf.matmul(valid_embeddings, normalized_embeddings, transpose_b=True)
-        predictor=tf.sigmoid(tf.matmul(encrpt_embed,normalized_embeddings,transpose_b=True))
+        #predictor=-tf.sigmoid(tf.matmul(encrpt_embed,normalized_embeddings,transpose_b=True))
+        predictor=tf.nn.bias_add(tf.matmul(encrpt_embed,nce_weights,transpose_b=True),nce_biases)
         # Merge all summaries.
         merged = tf.summary.merge_all()
 
@@ -410,7 +422,7 @@ def word2vec_basic(log_dir,choice):
                 predictions=predictor.eval(feed_dict=feed_dict)
                 #print('Predictions', predictions)
                 for j in range(128):
-                    top_candidates=(-predictions[j,:]).argsort()[:8] #this is the value to be returned
+                    top_candidates=(-predictions[j,:]).argsort()[0:8] #this is the value to be returned
                     log_str = 'Nearest to %s ->[%s, %s, %s,%s]'%(str(locs[x]),reverse_dictionary[locs_context[x][0]],reverse_dictionary[locs_context[x][1]],reverse_dictionary[locs_context[x][2]],reverse_dictionary[locs_context[x][3]])
                     for k in range(8):
                         close_word = reverse_dictionary[top_candidates[k]]
