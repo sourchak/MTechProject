@@ -15,7 +15,7 @@ from six.moves import urllib
 from six.moves import xrange
 
 
-skip_window=2
+bag_window=2
 eom=4
 alpha_offset=10
 punc_offset=36
@@ -55,8 +55,8 @@ def preprocessing(cover):
     # print(new_text)
     x=0
     while x < n_wordLine :
-        if x-skip_window>-1 and x+skip_window<n_wordLine and new_text[x]!='' and new_text[x][-1:]!='.':
-            buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] #[m words][x][m words]
+        if x-bag_window>-1 and x+bag_window<n_wordLine and new_text[x]!='' and new_text[x][-1:]!='.':
+            buffer=new_text[x-bag_window:x]+new_text[x+1:x+bag_window+1] #[m words][x][m words]
             flag=True
             i=0
             while i<len(buffer) and flag==True:
@@ -72,7 +72,7 @@ def preprocessing(cover):
                 word_to_context[x]=buffer
                 # print("Buffer "+str(x))
                 # print(buffer)
-                x=x+skip_window
+                x=x+bag_window
             else:
                 flag=True
         x=x+1
@@ -167,7 +167,7 @@ def word2vecEvaluator(log,contexts):
     saver=tf.train.Saver()
     locs=sorted(coded_contexts)
     context_vecs=tf.placeholder(tf.float32,[len(locs),embedding_size])
-    ids=tf.placeholder(tf.int32,[2*skip_window])
+    ids=tf.placeholder(tf.int32,[2*bag_window])
     req_embeddings=tf.nn.embedding_lookup(normalized_embeddings,ids)
     #for i in range(0,len(locs)):
     #    embeddings=tf.nn.embedding_lookup(normalized_embeddings,tf.convert_to_tensor(coded_contexts[locs[i]]))
@@ -179,7 +179,7 @@ def word2vecEvaluator(log,contexts):
         context_sum=np.zeros((len(locs),embedding_size))
         #print(normalized_embeddings.eval()[:8,:10])
         for i in range(0,len(locs)):
-            context_sum[i]=tf.reduce_sum(req_embeddings,0).eval(feed_dict={ids:coded_contexts[locs[i]]}) /(2*skip_window)
+            context_sum[i]=tf.reduce_sum(req_embeddings,0).eval(feed_dict={ids:coded_contexts[locs[i]]}) /(2*bag_window)
         giant_prediction=predictor.eval(feed_dict={context_vecs:context_sum})
         selected_words=dict()
         for i in range(0,len(locs)):
