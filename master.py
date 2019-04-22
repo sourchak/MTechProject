@@ -20,9 +20,9 @@ eom=4
 alpha_offset=10
 punc_offset=36
 ch_width=2
-tot_supprtd_char=62
+tot_supprtd_char=63
 embedding_size=128
-
+base=8
 
 def preprocessing(cover):
     l=list(cover)
@@ -106,7 +106,7 @@ def cover_preprocessing(option):
 def octalify(raw_message):
     # convert the message to its special octal form
     message=''
-    punc=string.punctuation.translate(None,'~#%<=>^')+' '
+    punc=string.punctuation.translate(None,'~#%<=>^')+' '+'\n'
     for x in raw_message:
         if x.isdigit():
             message=message+str(oct(ord(x)-ord('0')))[1:].rjust(2,'0') # 0,1,2,3,4,5,6,7,8,9 for digits
@@ -124,7 +124,7 @@ def octalify(raw_message):
 def inv_octalify(octal_message):
     message=''
     x=0
-    punc=string.punctuation.translate(None,'~#%<=>^')+' '
+    punc=string.punctuation.translate(None,'~#%<=>^')+' '+'\n'
     #print(len(octal_message))
     while x<len(octal_message):
         #print(octal_message[x:x+2])
@@ -183,8 +183,9 @@ def word2vecEvaluator(log,contexts):
         giant_prediction=predictor.eval(feed_dict={context_vecs:context_sum})
         selected_words=dict()
         for i in range(0,len(locs)):
-            selected_code_words=(-giant_prediction[i]).argsort()[:8]
-            selected_words[locs[i]]=[all_words[x] for x in selected_code_words]
+            selected_code_words=(-giant_prediction[i]).argsort()[:base+1]
+            selected_words[locs[i]]=[all_words[x] for x in selected_code_words if all_words[x]!='UNK'] #this removes 'UNK' words from consideration
+            selected_words[locs[i]]=selected_words[locs[i]][:base]
     return selected_words
 
 def embed(cover_text,loc_contexts,message):
