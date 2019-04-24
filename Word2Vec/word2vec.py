@@ -207,7 +207,7 @@ def word2vec_basic(log_dir,choice):
         print(batch[i], [reverse_dictionary[batch[i][x]] for x in range(4)], '->', labels[i, 0],
           reverse_dictionary[labels[i, 0]])
 
-    # Step 4: Build and train a skip-gram model.
+    # Step 4: Build and train a cbow model.
 
     batch_size = 128
     embedding_size = 128  # Dimension of the embedding vector.
@@ -259,7 +259,7 @@ def word2vec_basic(log_dir,choice):
             nce_weights = tf.Variable(tf.truncated_normal([vocabulary_size,
                                                            embedding_size],stddev=1.0
                                                           /
-                                                          math.sqrt(embedding_size)),name='weights')
+                                                          math.sqrt(embedding_size)),name='weights') # These are the target word vectors.
         with tf.name_scope('biases'):
             nce_biases = tf.Variable(tf.zeros([vocabulary_size]),name='biases')
 
@@ -288,6 +288,7 @@ def word2vec_basic(log_dir,choice):
         valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings,
                                               valid_dataset)
 
+        # here to predictor (294) is testing
         similarity = tf.matmul(valid_embeddings, normalized_embeddings, transpose_b=True)
         #predictor=-tf.sigmoid(tf.matmul(encrpt_embed,normalized_embeddings,transpose_b=True))
         predictor=tf.nn.bias_add(tf.matmul(encrpt_embed,nce_weights,transpose_b=True),nce_biases)
