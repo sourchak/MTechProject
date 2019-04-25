@@ -14,6 +14,7 @@
 # ==============================================================================
 """Basic word2vec example."""
 
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -33,10 +34,20 @@ from six.moves import xrange  # pylint: disable=redefined-builtin
 import tensorflow as tf
 import string
 
+from cryptography.fernet import Fernet
+import argon2
+import base64
+
 from tensorflow.contrib.tensorboard.plugins import projector
 
-data_index = 0
 
+data_index = 0
+password=b''
+mem_cost=204800
+hash_len=32
+p=8
+time=1
+salt=b'somesalt'
 
 def cover_context_generator():
     bag_window=2
@@ -98,6 +109,31 @@ def cover_context_generator():
     # print "Length of word_to_context="+ str(len(word_to_context))
     # print "Locations to encrypt: " +  str(locations)
     return word_to_context
+
+
+def request_password():
+    password=raw_input('Enter password: ')
+    hash_password=argon2.low_level.hash_secret_raw(str.encode(password),salt,time_cost=time,
+                                                  memory_cost=mem_cost,
+                                                   parallelism=p,
+                                                   hash_len=hash_len,type=argon2.low_level.Type.I)
+    return base64.urlsafe_b64encode(hash_password)
+
+def encrypt_ckpt(log_dir,filename,hashed_password):
+    dir_name='encrypted_log'
+    if not os.path.exists(dir_name):
+        os.makedirs(dir_name)
+    with open(os.path.join(dir_name,filename),'wb') as f:
+        f.write(Fernet(hashed_password).encrypt(open(os.path.join(log_dir,filename),'rb').read()))
+
+def export_encrypted(log_dir):
+    hashed_password=request_password()
+    encrypt_ckpt(log_dir,'metadata.tsv',hashed_password)
+    encrypt_ckpt(log_dir,'model.ckpt.meta',hashed_password)
+    encrypt_ckpt(log_dir,'model.ckpt.index',hashed_password)
+    encrypt_ckpt(log_dir,'model.ckpt.data-00000-of-00001',hashed_password)
+    print('Encrypted Logs saved at: '+os.path.abspath('encrypted_log'))
+
 
 
 def word2vec_basic(log_dir,choice):
@@ -302,7 +338,7 @@ def word2vec_basic(log_dir,choice):
         saver = tf.train.Saver()
 
     # Step 5: Begin training.
-    num_steps = 100001
+    num_steps = 100001 #100001
     if choice == 'train':
         with tf.Session(graph=graph) as session:
             # Open a writer to write summaries.
@@ -375,7 +411,7 @@ def word2vec_basic(log_dir,choice):
             projector.visualize_embeddings(writer, config)
         writer.close()
             # Step 6: Visualize the embeddings.
-
+        export_encrypted(log_dir)
         # pylint: disable=missing-docstring
         # Function to draw visualization of distance between embeddings.
         def plot_with_labels(low_dim_embs, labels, filename):

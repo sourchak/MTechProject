@@ -1,6 +1,7 @@
 from __future__ import print_function
 
 
+import os
 from os import path
 import string
 import tensorflow as tf
@@ -13,6 +14,10 @@ import zipfile
 from tempfile import gettempdir
 from six.moves import urllib
 from six.moves import xrange
+import argon2
+from cryptography.fernet import Fernet
+import base64
+import shutil
 
 
 bag_window=2
@@ -23,6 +28,13 @@ ch_width=2
 tot_supprtd_char=63
 embedding_size=128
 base=8
+password=b''
+mem_cost=204800 #200MiB
+hash_len=32
+p=8
+time=1
+salt=b'somesalt'
+
 
 def preprocessing(cover):
     l=list(cover)
@@ -188,6 +200,30 @@ def word2vecEvaluator(log,contexts):
             selected_words[locs[i]]=selected_words[locs[i]][:base]
     return selected_words
 
+def request_password():
+    password=raw_input('Enter password: ')
+    hash_password=argon2.low_level.hash_secret_raw(str.encode(password),salt,time_cost=time,
+                                                  memory_cost=mem_cost,
+                                                   parallelism=p,
+                                                   hash_len=hash_len,type=argon2.low_level.Type.I)
+    return base64.urlsafe_b64encode(hash_password)
+
+def decrypt_ckpt(log,hashed_password):
+    log_dir='temp_log'
+    if not os.path.exists(log_dir):
+        os.makedirs(log_dir)
+    with open(os.path.join(log_dir,'model.ckpt.meta'),'wb') as f:
+        f.write(Fernet(hashed_password).decrypt(open(os.path.join(log,'model.ckpt.meta'),'rb').read()))
+    with open(os.path.join(log_dir,'model.ckpt.index'),'wb') as f:
+        f.write(Fernet(hashed_password).decrypt(open(os.path.join(log,'model.ckpt.index'),'rb').read()))
+    with open(os.path.join(log_dir,'metadata.tsv'),'wb') as f:
+        f.write(Fernet(hashed_password).decrypt(open(os.path.join(log,'metadata.tsv'),'rb').read()))
+    with open(os.path.join(log_dir,'model.ckpt.data-00000-of-00001'),'wb') as f:
+        f.write(Fernet(hashed_password).decrypt(open(os.path.join(log,'model.ckpt.data-00000-of-00001'),'rb').read()))
+
+    return log_dir
+
+
 def embed(cover_text,loc_contexts,message):
     # TO DO: This will use word2vec to make the predictions and store them in
     # dictionary loc_words.
@@ -195,6 +231,8 @@ def embed(cover_text,loc_contexts,message):
     msg_ptr=0
     end=0
     log=path.abspath(raw_input('Path to log_dir: ')) # this will be changed once word2vec is mereged with this.
+    hashed_password=request_password()
+    log=decrypt_ckpt(log,hashed_password)
     words=word2vecEvaluator(log,loc_contexts)
     for loc in sorted(loc_contexts):
         if msg_ptr<len(message):
@@ -216,6 +254,8 @@ def embed(cover_text,loc_contexts,message):
 def extractor(cover_text,loc_contexts):
     flag=True
     log=path.abspath(raw_input('Path to log_dir: ')) # like embed, this too will be changed once word2vec is merged 
+    hashed_password=request_password()
+    log=decrypt_ckpt(log,hashed_password)
     consec_seven=0 #to keep track of consecutive 7s, 4 7s assumed to signal message end
     octal_message=''
     words=word2vecEvaluator(log,loc_contexts)
@@ -248,3 +288,7 @@ if choice=='embed':
 elif choice=='extract':
     cover_text,loc_contexts=cover_preprocessing('stego')
     message=extractor(cover_text,loc_contexts)
+
+if os.path.exists('temp_log'):
+    shutil.rmtree('temp_log')
+
