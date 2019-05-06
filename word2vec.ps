@@ -1,0 +1,4213 @@
+%!PS-Adobe-3.0
+%%BoundingBox: 24 24 571 818
+%%Title: Enscript Output
+%%For: IS LAB-15
+%%Creator: GNU Enscript 1.6.6
+%%CreationDate: Wed May  1 11:25:16 2019
+%%Orientation: Portrait
+%%Pages: (atend)
+%%DocumentMedia: A4 595 842 0 () ()
+%%DocumentNeededResources: (atend)
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset Enscript-Prolog 1.6 6
+%
+% Procedures.
+%
+
+/_S {	% save current state
+  /_s save def
+} def
+/_R {	% restore from saved state
+  _s restore
+} def
+
+/S {	% showpage protecting gstate
+  gsave
+  showpage
+  grestore
+} bind def
+
+/MF {	% fontname newfontname -> -	make a new encoded font
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  % insert only valid encoding vectors
+  encoding_vector length 256 eq {
+    newfont /Encoding encoding_vector put
+  } if
+
+  newfontname newfont definefont pop
+} def
+
+/MF_PS { % fontname newfontname -> -	make a new font preserving its enc
+  /newfontname exch def
+  /fontname exch def
+
+  /fontdict fontname findfont def
+  /newfont fontdict maxlength dict def
+
+  fontdict {
+    exch
+    dup /FID eq {
+      % skip FID pair
+      pop pop
+    } {
+      % copy to the new font dictionary
+      exch newfont 3 1 roll put
+    } ifelse
+  } forall
+
+  newfont /FontName newfontname put
+
+  newfontname newfont definefont pop
+} def
+
+/SF { % fontname width height -> -	set a new font
+  /height exch def
+  /width exch def
+
+  findfont
+  [width 0 0 height 0 0] makefont setfont
+} def
+
+/SUF { % fontname width height -> -	set a new user font
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF
+  /F-gs-user-font width height SF
+} def
+
+/SUF_PS { % fontname width height -> -	set a new user font preserving its enc
+  /height exch def
+  /width exch def
+
+  /F-gs-user-font MF_PS
+  /F-gs-user-font width height SF
+} def
+
+/M {moveto} bind def
+/s {show} bind def
+
+/Box {	% x y w h -> -			define box path
+  /d_h exch def /d_w exch def /d_y exch def /d_x exch def
+  d_x d_y  moveto
+  d_w 0 rlineto
+  0 d_h rlineto
+  d_w neg 0 rlineto
+  closepath
+} def
+
+/bgs {	% x y height blskip gray str -> -	show string with bg color
+  /str exch def
+  /gray exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    gray setgray
+    fill
+  grestore
+  x y M str s
+} def
+
+/bgcs { % x y height blskip red green blue str -> -  show string with bg color
+  /str exch def
+  /blue exch def
+  /green exch def
+  /red exch def
+  /blskip exch def
+  /height exch def
+  /y exch def
+  /x exch def
+
+  gsave
+    x y blskip sub str stringwidth pop height Box
+    red green blue setrgbcolor
+    fill
+  grestore
+  x y M str s
+} def
+
+% Highlight bars.
+/highlight_bars {	% nlines lineheight output_y_margin gray -> -
+  gsave
+    setgray
+    /ymarg exch def
+    /lineheight exch def
+    /nlines exch def
+
+    % This 2 is just a magic number to sync highlight lines to text.
+    0 d_header_y ymarg sub 2 sub translate
+
+    /cw d_output_w cols div def
+    /nrows d_output_h ymarg 2 mul sub lineheight div cvi def
+
+    % for each column
+    0 1 cols 1 sub {
+      cw mul /xp exch def
+
+      % for each rows
+      0 1 nrows 1 sub {
+        /rn exch def
+        rn lineheight mul neg /yp exch def
+        rn nlines idiv 2 mod 0 eq {
+	  % Draw highlight bar.  4 is just a magic indentation.
+	  xp 4 add yp cw 8 sub lineheight neg Box fill
+	} if
+      } for
+    } for
+
+  grestore
+} def
+
+% Line highlight bar.
+/line_highlight {	% x y width height gray -> -
+  gsave
+    /gray exch def
+    Box gray setgray fill
+  grestore
+} def
+
+% Column separator lines.
+/column_lines {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h translate
+    /cw d_output_w cols div def
+    1 1 cols 1 sub {
+      cw mul 0 moveto
+      0 d_output_h rlineto stroke
+    } for
+  grestore
+} def
+
+% Column borders.
+/column_borders {
+  gsave
+    .1 setlinewidth
+    0 d_footer_h moveto
+    0 d_output_h rlineto
+    d_output_w 0 rlineto
+    0 d_output_h neg rlineto
+    closepath stroke
+  grestore
+} def
+
+% Do the actual underlay drawing
+/draw_underlay {
+  ul_style 0 eq {
+    ul_str true charpath stroke
+  } {
+    ul_str show
+  } ifelse
+} def
+
+% Underlay
+/underlay {	% - -> -
+  gsave
+    0 d_page_h translate
+    d_page_h neg d_page_w atan rotate
+
+    ul_gray setgray
+    ul_font setfont
+    /dw d_page_h dup mul d_page_w dup mul add sqrt def
+    ul_str stringwidth pop dw exch sub 2 div ul_h_ptsize -2 div moveto
+    draw_underlay
+  grestore
+} def
+
+/user_underlay {	% - -> -
+  gsave
+    ul_x ul_y translate
+    ul_angle rotate
+    ul_gray setgray
+    ul_font setfont
+    0 0 ul_h_ptsize 2 div sub moveto
+    draw_underlay
+  grestore
+} def
+
+% Page prefeed
+/page_prefeed {		% bool -> -
+  statusdict /prefeed known {
+    statusdict exch /prefeed exch put
+  } {
+    pop
+  } ifelse
+} def
+
+% Wrapped line markers
+/wrapped_line_mark {	% x y charwith charheight type -> -
+  /type exch def
+  /h exch def
+  /w exch def
+  /y exch def
+  /x exch def
+
+  type 2 eq {
+    % Black boxes (like TeX does)
+    gsave
+      0 setlinewidth
+      x w 4 div add y M
+      0 h rlineto w 2 div 0 rlineto 0 h neg rlineto
+      closepath fill
+    grestore
+  } {
+    type 3 eq {
+      % Small arrows
+      gsave
+        .2 setlinewidth
+        x w 2 div add y h 2 div add M
+        w 4 div 0 rlineto
+        x w 4 div add y lineto stroke
+
+        x w 4 div add w 8 div add y h 4 div add M
+        x w 4 div add y lineto
+	w 4 div h 8 div rlineto stroke
+      grestore
+    } {
+      % do nothing
+    } ifelse
+  } ifelse
+} def
+
+% EPSF import.
+
+/BeginEPSF {
+  /b4_Inc_state save def    		% Save state for cleanup
+  /dict_count countdictstack def	% Count objects on dict stack
+  /op_count count 1 sub def		% Count objects on operand stack
+  userdict begin
+  /showpage { } def
+  0 setgray 0 setlinecap
+  1 setlinewidth 0 setlinejoin
+  10 setmiterlimit [ ] 0 setdash newpath
+  /languagelevel where {
+    pop languagelevel
+    1 ne {
+      false setstrokeadjust false setoverprint
+    } if
+  } if
+} bind def
+
+/EndEPSF {
+  count op_count sub { pos } repeat	% Clean up stacks
+  countdictstack dict_count sub { end } repeat
+  b4_Inc_state restore
+} bind def
+
+% Check PostScript language level.
+/languagelevel where {
+  pop /gs_languagelevel languagelevel def
+} {
+  /gs_languagelevel 1 def
+} ifelse
+%%EndResource
+%%BeginResource: procset Enscript-Encoding-88591 1.6 6
+/encoding_vector [
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclam       	/quotedbl     	/numbersign   	
+/dollar       	/percent      	/ampersand    	/quoteright   	
+/parenleft    	/parenright   	/asterisk     	/plus         	
+/comma        	/hyphen       	/period       	/slash        	
+/zero         	/one          	/two          	/three        	
+/four         	/five         	/six          	/seven        	
+/eight        	/nine         	/colon        	/semicolon    	
+/less         	/equal        	/greater      	/question     	
+/at           	/A            	/B            	/C            	
+/D            	/E            	/F            	/G            	
+/H            	/I            	/J            	/K            	
+/L            	/M            	/N            	/O            	
+/P            	/Q            	/R            	/S            	
+/T            	/U            	/V            	/W            	
+/X            	/Y            	/Z            	/bracketleft  	
+/backslash    	/bracketright 	/asciicircum  	/underscore   	
+/quoteleft    	/a            	/b            	/c            	
+/d            	/e            	/f            	/g            	
+/h            	/i            	/j            	/k            	
+/l            	/m            	/n            	/o            	
+/p            	/q            	/r            	/s            	
+/t            	/u            	/v            	/w            	
+/x            	/y            	/z            	/braceleft    	
+/bar          	/braceright   	/tilde        	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/.notdef      	/.notdef      	/.notdef      	/.notdef      	
+/space        	/exclamdown   	/cent         	/sterling     	
+/currency     	/yen          	/brokenbar    	/section      	
+/dieresis     	/copyright    	/ordfeminine  	/guillemotleft	
+/logicalnot   	/hyphen       	/registered   	/macron       	
+/degree       	/plusminus    	/twosuperior  	/threesuperior	
+/acute        	/mu           	/paragraph    	/bullet       	
+/cedilla      	/onesuperior  	/ordmasculine 	/guillemotright	
+/onequarter   	/onehalf      	/threequarters	/questiondown 	
+/Agrave       	/Aacute       	/Acircumflex  	/Atilde       	
+/Adieresis    	/Aring        	/AE           	/Ccedilla     	
+/Egrave       	/Eacute       	/Ecircumflex  	/Edieresis    	
+/Igrave       	/Iacute       	/Icircumflex  	/Idieresis    	
+/Eth          	/Ntilde       	/Ograve       	/Oacute       	
+/Ocircumflex  	/Otilde       	/Odieresis    	/multiply     	
+/Oslash       	/Ugrave       	/Uacute       	/Ucircumflex  	
+/Udieresis    	/Yacute       	/Thorn        	/germandbls   	
+/agrave       	/aacute       	/acircumflex  	/atilde       	
+/adieresis    	/aring        	/ae           	/ccedilla     	
+/egrave       	/eacute       	/ecircumflex  	/edieresis    	
+/igrave       	/iacute       	/icircumflex  	/idieresis    	
+/eth          	/ntilde       	/ograve       	/oacute       	
+/ocircumflex  	/otilde       	/odieresis    	/divide       	
+/oslash       	/ugrave       	/uacute       	/ucircumflex  	
+/udieresis    	/yacute       	/thorn        	/ydieresis    	
+] def
+%%EndResource
+%%EndProlog
+%%BeginSetup
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font Courier
+/HFpt_w 10 def
+/HFpt_h 10 def
+/Courier-Bold /HF-gs-font MF
+/HF /HF-gs-font findfont [HFpt_w 0 0 HFpt_h 0 0] makefont def
+/Courier /F-gs-font MF
+/F-gs-font 10 10 SF
+/#copies 1 def
+% Pagedevice definitions:
+gs_languagelevel 1 gt {
+  <<
+    /PageSize [595 842] 
+  >> setpagedevice
+} if
+%%BeginResource: procset Enscript-Header-simple 1.6 6
+
+/do_header {	% print default simple header
+  gsave
+    d_header_x d_header_y HFpt_h 3 div add translate
+
+    HF setfont
+    user_header_p {
+      5 0 moveto user_header_left_str show
+
+      d_header_w user_header_center_str stringwidth pop sub 2 div
+      0 moveto user_header_center_str show
+
+      d_header_w user_header_right_str stringwidth pop sub 5 sub
+      0 moveto user_header_right_str show
+    } {
+      5 0 moveto fname show
+      45 0 rmoveto fmodstr show
+      45 0 rmoveto pagenumstr show
+    } ifelse
+
+  grestore
+} def
+%%EndResource
+/d_page_w 547 def
+/d_page_h 794 def
+/d_header_x 0 def
+/d_header_y 779 def
+/d_header_w 547 def
+/d_header_h 15 def
+/d_footer_x 0 def
+/d_footer_y 0 def
+/d_footer_w 547 def
+/d_footer_h 0 def
+/d_output_w 547 def
+/d_output_h 779 def
+/cols 1 def
+%%EndSetup
+%%Page: (1) 1
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 1 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (1) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+30 766 M (1:) s
+/Courier-Oblique 10 10 SUF
+48 766 M
+(# Copyright 2015 The TensorFlow Authors. All Rights Reserved.) s
+/F-gs-font 10 10 SF
+30 755 M (2:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 755 M
+(#) s
+/F-gs-font 10 10 SF
+30 744 M (3:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 744 M
+(# Licensed under the Apache License, Version 2.0 \(the "License"\);) s
+/F-gs-font 10 10 SF
+30 733 M (4:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 733 M
+(# you may not use this file except in compliance with the License.) s
+/F-gs-font 10 10 SF
+30 722 M (5:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 722 M
+(# You may obtain a copy of the License at) s
+/F-gs-font 10 10 SF
+30 711 M (6:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 711 M
+(#) s
+/F-gs-font 10 10 SF
+30 700 M (7:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 700 M
+(#     http://www.apache.org/licenses/LICENSE-2.0) s
+/F-gs-font 10 10 SF
+30 689 M (8:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 689 M
+(#) s
+/F-gs-font 10 10 SF
+30 678 M (9:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 678 M
+(# Unless required by applicable law or agreed to in writing, software) s
+/F-gs-font 10 10 SF
+24 667 M (10:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 667 M
+(# distributed under the License is distributed on an "AS IS" BASIS,) s
+/F-gs-font 10 10 SF
+24 656 M (11:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 656 M
+(# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.) s
+/F-gs-font 10 10 SF
+24 645 M (12:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 645 M
+(# See the License for the specific language governing permissions and) s
+/F-gs-font 10 10 SF
+24 634 M (13:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 634 M
+(# limitations under the License.) s
+/F-gs-font 10 10 SF
+24 623 M (14:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 623 M
+(# ==============================================================================) s
+/F-gs-font 10 10 SF
+24 612 M (15:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Bold 10 10 SUF
+48 612 M
+("""Basic word2vec example.""") s
+/F-gs-font 10 10 SF
+24 601 M (16:) s
+24 590 M (17:) s
+24 579 M (18:) s
+/Courier-Bold 10 10 SUF
+48 579 M
+(from) s
+/F-gs-font 10 10 SF
+72 579 M
+( __future__ ) s
+/Courier-Bold 10 10 SUF
+144 579 M
+(import) s
+/F-gs-font 10 10 SF
+180 579 M
+( absolute_import) s
+24 568 M (19:) s
+/Courier-Bold 10 10 SUF
+48 568 M
+(from) s
+/F-gs-font 10 10 SF
+72 568 M
+( __future__ ) s
+/Courier-Bold 10 10 SUF
+144 568 M
+(import) s
+/F-gs-font 10 10 SF
+180 568 M
+( division) s
+24 557 M (20:) s
+/Courier-Bold 10 10 SUF
+48 557 M
+(from) s
+/F-gs-font 10 10 SF
+72 557 M
+( __future__ ) s
+/Courier-Bold 10 10 SUF
+144 557 M
+(import) s
+/F-gs-font 10 10 SF
+180 557 M
+( print_function) s
+24 546 M (21:) s
+24 535 M (22:) s
+/Courier-Bold 10 10 SUF
+48 535 M
+(import) s
+/F-gs-font 10 10 SF
+84 535 M
+( argparse) s
+24 524 M (23:) s
+/Courier-Bold 10 10 SUF
+48 524 M
+(import) s
+/F-gs-font 10 10 SF
+84 524 M
+( collections) s
+24 513 M (24:) s
+/Courier-Bold 10 10 SUF
+48 513 M
+(import) s
+/F-gs-font 10 10 SF
+84 513 M
+( math) s
+24 502 M (25:) s
+/Courier-Bold 10 10 SUF
+48 502 M
+(import) s
+/F-gs-font 10 10 SF
+84 502 M
+( os) s
+24 491 M (26:) s
+/Courier-Bold 10 10 SUF
+48 491 M
+(import) s
+/F-gs-font 10 10 SF
+84 491 M
+( random) s
+24 480 M (27:) s
+/Courier-Bold 10 10 SUF
+48 480 M
+(import) s
+/F-gs-font 10 10 SF
+84 480 M
+( sys) s
+24 469 M (28:) s
+/Courier-Bold 10 10 SUF
+48 469 M
+(from) s
+/F-gs-font 10 10 SF
+72 469 M
+( tempfile ) s
+/Courier-Bold 10 10 SUF
+132 469 M
+(import) s
+/F-gs-font 10 10 SF
+168 469 M
+( gettempdir) s
+24 458 M (29:) s
+/Courier-Bold 10 10 SUF
+48 458 M
+(import) s
+/F-gs-font 10 10 SF
+84 458 M
+( zipfile) s
+24 447 M (30:) s
+24 436 M (31:) s
+/Courier-Bold 10 10 SUF
+48 436 M
+(import) s
+/F-gs-font 10 10 SF
+84 436 M
+( numpy as np) s
+24 425 M (32:) s
+/Courier-Bold 10 10 SUF
+48 425 M
+(from) s
+/F-gs-font 10 10 SF
+72 425 M
+( six.moves ) s
+/Courier-Bold 10 10 SUF
+138 425 M
+(import) s
+/F-gs-font 10 10 SF
+174 425 M
+( urllib) s
+24 414 M (33:) s
+/Courier-Bold 10 10 SUF
+48 414 M
+(from) s
+/F-gs-font 10 10 SF
+72 414 M
+( six.moves ) s
+/Courier-Bold 10 10 SUF
+138 414 M
+(import) s
+/F-gs-font 10 10 SF
+174 414 M
+( xrange  ) s
+/Courier-Oblique 10 10 SUF
+228 414 M
+(# pylint: disable=redefined-builtin) s
+/F-gs-font 10 10 SF
+24 403 M (34:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Bold 10 10 SUF
+48 403 M
+(import) s
+/F-gs-font 10 10 SF
+84 403 M
+( tensorflow as tf) s
+24 392 M (35:) s
+/Courier-Bold 10 10 SUF
+48 392 M
+(import) s
+/F-gs-font 10 10 SF
+84 392 M
+( string) s
+24 381 M (36:) s
+24 370 M (37:) s
+/Courier-Bold 10 10 SUF
+48 370 M
+(from) s
+/F-gs-font 10 10 SF
+72 370 M
+( cryptography.fernet ) s
+/Courier-Bold 10 10 SUF
+198 370 M
+(import) s
+/F-gs-font 10 10 SF
+234 370 M
+( Fernet) s
+24 359 M (38:) s
+/Courier-Bold 10 10 SUF
+48 359 M
+(import) s
+/F-gs-font 10 10 SF
+84 359 M
+( argon2) s
+24 348 M (39:) s
+/Courier-Bold 10 10 SUF
+48 348 M
+(import) s
+/F-gs-font 10 10 SF
+84 348 M
+( base64) s
+24 337 M (40:) s
+24 326 M (41:) s
+/Courier-Bold 10 10 SUF
+48 326 M
+(from) s
+/F-gs-font 10 10 SF
+72 326 M
+( tensorflow.contrib.tensorboard.plugins ) s
+/Courier-Bold 10 10 SUF
+312 326 M
+(import) s
+/F-gs-font 10 10 SF
+348 326 M
+( projector) s
+24 315 M (42:) s
+24 304 M (43:) s
+24 293 M (44:) s
+48 293 M
+(data_index = 0) s
+24 282 M (45:) s
+48 282 M
+(password=b) s
+/Courier-Bold 10 10 SUF
+108 282 M
+('') s
+/F-gs-font 10 10 SF
+24 271 M (46:) s
+48 271 M
+(mem_cost=204800) s
+24 260 M (47:) s
+48 260 M
+(hash_len=32) s
+24 249 M (48:) s
+48 249 M
+(p=8) s
+24 238 M (49:) s
+48 238 M
+(time=1) s
+24 227 M (50:) s
+48 227 M
+(salt=b) s
+/Courier-Bold 10 10 SUF
+84 227 M
+('somesalt') s
+/F-gs-font 10 10 SF
+24 216 M (51:) s
+24 205 M (52:) s
+/Courier-Bold 10 10 SUF
+48 205 M
+(def) s
+/F-gs-font 10 10 SF
+66 205 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 205 M
+(cover_context_generator) s
+/F-gs-font 10 10 SF
+210 205 M
+(\(\):) s
+24 194 M (53:) s
+48 194 M
+(    bag_window=2) s
+24 183 M (54:) s
+48 183 M
+(    skip_window=bag_window) s
+24 172 M (55:) s
+48 172 M
+(    ) s
+24 161 M (56:) s
+48 161 M
+(    f=open\(os.path.abspath\() s
+/Courier-Bold 10 10 SUF
+210 161 M
+('aesop10.txt') s
+/F-gs-font 10 10 SF
+288 161 M
+(\),) s
+/Courier-Bold 10 10 SUF
+300 161 M
+('r') s
+/F-gs-font 10 10 SF
+318 161 M
+(\)) s
+24 150 M (57:) s
+48 150 M
+(    l=list\(f\)) s
+24 139 M (58:) s
+48 139 M
+(    original_text=[]) s
+24 128 M (59:) s
+48 128 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 128 M
+(for) s
+/F-gs-font 10 10 SF
+90 128 M
+( x ) s
+/Courier-Bold 10 10 SUF
+108 128 M
+(in) s
+/F-gs-font 10 10 SF
+120 128 M
+( l:) s
+24 117 M (60:) s
+48 117 M
+(        original_text=original_text+x.split\() s
+/Courier-Bold 10 10 SUF
+312 117 M
+(' ') s
+/F-gs-font 10 10 SF
+330 117 M
+(\)) s
+24 106 M (61:) s
+48 106 M
+(    n_wordLine=len\(original_text\)) s
+24 95 M (62:) s
+48 95 M
+(    new_text=[]) s
+24 84 M (63:) s
+48 84 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 84 M
+(# print original_text) s
+/F-gs-font 10 10 SF
+24 73 M (64:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 73 M
+(    pos=string.punctuation.find\() s
+/Courier-Bold 10 10 SUF
+240 73 M
+('.') s
+/F-gs-font 10 10 SF
+258 73 M
+(\) ) s
+/Courier-Oblique 10 10 SUF
+270 73 M
+(# position of the period) s
+/F-gs-font 10 10 SF
+24 62 M (65:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 62 M
+(    punc_Period=string.punctuation[0:pos]+string.punctuation[pos+1:] ) s
+/Courier-Oblique 10 10 SUF
+462 62 M
+(# removes per) s
+5 51 M
+(iod from string.punctuation) s
+/F-gs-font 10 10 SF
+24 40 M (66:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+24 29 M (67:) s
+48 29 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 29 M
+(for) s
+/F-gs-font 10 10 SF
+90 29 M
+( x ) s
+/Courier-Bold 10 10 SUF
+108 29 M
+(in) s
+/F-gs-font 10 10 SF
+120 29 M
+( original_text:) s
+24 18 M (68:) s
+48 18 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 18 M
+(# apparently the best way to remove punctuations) s
+/F-gs-font 10 10 SF
+24 7 M (69:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 7 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 7 M
+(# https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-fro) s
+_R
+S
+%%Page: (2) 2
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 2 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+/Courier-Oblique 10 10 SUF
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (2) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+5 766 M
+(m-a-string-in-python) s
+/F-gs-font 10 10 SF
+24 755 M (70:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 755 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 755 M
+(# unpunctuated_str=string.translate\(x,None,string.punctuation\)) s
+/F-gs-font 10 10 SF
+24 744 M (71:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 744 M
+(        perioded_str=string.translate\(x,None,punc_Period\) ) s
+/Courier-Oblique 10 10 SUF
+396 744 M
+(# removes all punctuatio) s
+5 733 M
+(ns except period) s
+/F-gs-font 10 10 SF
+24 722 M (72:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 722 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 722 M
+(# noNewLine_str=string.replace\(unpunctuated_str,'\\n',''\)) s
+/F-gs-font 10 10 SF
+24 711 M (73:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 711 M
+(        noNewLine_perioded_str=string.replace\(perioded_str,) s
+/Courier-Bold 10 10 SUF
+402 711 M
+('\\n') s
+/F-gs-font 10 10 SF
+426 711 M
+(,) s
+/Courier-Bold 10 10 SUF
+432 711 M
+('') s
+/F-gs-font 10 10 SF
+444 711 M
+(\) ) s
+/Courier-Oblique 10 10 SUF
+456 711 M
+(# replace newl) s
+5 700 M
+(ine with empty string) s
+/F-gs-font 10 10 SF
+24 689 M (74:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 689 M
+(        noNewLine_perioded_str=string.replace\(noNewLine_perioded_str,) s
+/Courier-Bold 10 10 SUF
+462 689 M
+('\\r') s
+/F-gs-font 10 10 SF
+486 689 M
+(,) s
+/Courier-Bold 10 10 SUF
+492 689 M
+('') s
+/F-gs-font 10 10 SF
+504 689 M
+(\)) s
+24 678 M (75:) s
+48 678 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 678 M
+(# new_text=new_text+[noNewLine_str]) s
+/F-gs-font 10 10 SF
+24 667 M (76:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 667 M
+(        ) s
+24 656 M (77:) s
+48 656 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 656 M
+(# new_text is a list of words where newline is replaced by '' and punctuat) s
+5 645 M
+(ions except '.' have been removed) s
+/F-gs-font 10 10 SF
+24 634 M (78:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 634 M
+(        new_text=new_text+[noNewLine_perioded_str]) s
+24 623 M (79:) s
+48 623 M
+(    ) s
+24 612 M (80:) s
+48 612 M
+(    ) s
+24 601 M (81:) s
+48 601 M
+(    word_to_context=dict\(\)) s
+24 590 M (82:) s
+48 590 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 590 M
+(assert) s
+/F-gs-font 10 10 SF
+108 590 M
+( n_wordLine==len\(new_text\)) s
+24 579 M (83:) s
+48 579 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 579 M
+(# print new_text) s
+/F-gs-font 10 10 SF
+24 568 M (84:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 568 M
+(    x=0) s
+24 557 M (85:) s
+48 557 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 557 M
+(while) s
+/F-gs-font 10 10 SF
+102 557 M
+( x < n_wordLine :) s
+24 546 M (86:) s
+48 546 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 546 M
+(if) s
+/F-gs-font 10 10 SF
+108 546 M
+( x-skip_window>-1 ) s
+/Courier-Bold 10 10 SUF
+216 546 M
+(and) s
+/F-gs-font 10 10 SF
+234 546 M
+( x+skip_window<n_wordLine ) s
+/Courier-Bold 10 10 SUF
+390 546 M
+(and) s
+/F-gs-font 10 10 SF
+408 546 M
+( new_text[x]!=) s
+/Courier-Bold 10 10 SUF
+492 546 M
+('') s
+/F-gs-font 10 10 SF
+504 546 M
+( ) s
+/Courier-Bold 10 10 SUF
+510 546 M
+(and) s
+/F-gs-font 10 10 SF
+528 546 M
+( n) s
+5 535 M
+(ew_text[x][-1:]!=) s
+/Courier-Bold 10 10 SUF
+107 535 M
+('.') s
+/F-gs-font 10 10 SF
+125 535 M
+(:) s
+24 524 M (87:) s
+48 524 M
+(            buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] ) s
+/Courier-Oblique 10 10 SUF
+498 524 M
+(#[m wor) s
+5 513 M
+(ds][x][m words]) s
+/F-gs-font 10 10 SF
+24 502 M (88:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 502 M
+(            flag=True) s
+24 491 M (89:) s
+48 491 M
+(            i=0) s
+24 480 M (90:) s
+48 480 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 480 M
+(while) s
+/F-gs-font 10 10 SF
+150 480 M
+( i<len\(buffer\) ) s
+/Courier-Bold 10 10 SUF
+240 480 M
+(and) s
+/F-gs-font 10 10 SF
+258 480 M
+( flag==True:) s
+24 469 M (91:) s
+48 469 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 469 M
+(if) s
+/F-gs-font 10 10 SF
+156 469 M
+( i!=len\(buffer\)-1 ) s
+/Courier-Bold 10 10 SUF
+264 469 M
+(and) s
+/F-gs-font 10 10 SF
+282 469 M
+( buffer[i][-1:]!=) s
+/Courier-Bold 10 10 SUF
+384 469 M
+('.') s
+/F-gs-font 10 10 SF
+402 469 M
+( ) s
+/Courier-Bold 10 10 SUF
+408 469 M
+(and) s
+/F-gs-font 10 10 SF
+426 469 M
+( buffer[i]!=) s
+/Courier-Bold 10 10 SUF
+498 469 M
+('') s
+/F-gs-font 10 10 SF
+510 469 M
+(:) s
+24 458 M (92:) s
+48 458 M
+(                    i=i+1) s
+24 447 M (93:) s
+48 447 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 447 M
+(elif) s
+/F-gs-font 10 10 SF
+168 447 M
+( i==len\(buffer\)-1 ) s
+/Courier-Bold 10 10 SUF
+276 447 M
+(and) s
+/F-gs-font 10 10 SF
+294 447 M
+( buffer[i]!=) s
+/Courier-Bold 10 10 SUF
+366 447 M
+('') s
+/F-gs-font 10 10 SF
+378 447 M
+(:) s
+24 436 M (94:) s
+48 436 M
+(                    ) s
+/Courier-Bold 10 10 SUF
+168 436 M
+(if) s
+/F-gs-font 10 10 SF
+180 436 M
+( buffer[i][-1:]==) s
+/Courier-Bold 10 10 SUF
+282 436 M
+('.') s
+/F-gs-font 10 10 SF
+300 436 M
+(:) s
+24 425 M (95:) s
+48 425 M
+(                        buffer[i]=buffer[i][:-1]) s
+24 414 M (96:) s
+48 414 M
+(                    i=i+1) s
+24 403 M (97:) s
+48 403 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 403 M
+(else) s
+/F-gs-font 10 10 SF
+168 403 M
+(:) s
+24 392 M (98:) s
+48 392 M
+(                    flag=False) s
+24 381 M (99:) s
+48 381 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 381 M
+(if) s
+/F-gs-font 10 10 SF
+132 381 M
+( flag==True:) s
+18 370 M (100:) s
+48 370 M
+(                word_to_context[x]=buffer) s
+18 359 M (101:) s
+48 359 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 359 M
+(print) s
+/F-gs-font 10 10 SF
+174 359 M
+(\() s
+/Courier-Bold 10 10 SUF
+180 359 M
+("Buffer ") s
+/F-gs-font 10 10 SF
+234 359 M
+(+str\(x\)\)) s
+18 348 M (102:) s
+48 348 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 348 M
+(print) s
+/F-gs-font 10 10 SF
+174 348 M
+(\(buffer\)) s
+18 337 M (103:) s
+48 337 M
+(                x=x+skip_window) s
+18 326 M (104:) s
+48 326 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 326 M
+(else) s
+/F-gs-font 10 10 SF
+144 326 M
+(:) s
+18 315 M (105:) s
+48 315 M
+(                flag=True) s
+18 304 M (106:) s
+48 304 M
+(        x=x+1) s
+18 293 M (107:) s
+48 293 M
+(    locations=word_to_context.keys\(\) ) s
+/Courier-Oblique 10 10 SUF
+270 293 M
+(# locations to encrypt) s
+/F-gs-font 10 10 SF
+18 282 M (108:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 282 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 282 M
+(# print word_to_context) s
+/F-gs-font 10 10 SF
+18 271 M (109:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 271 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 271 M
+(# print "Length of word_to_context="+ str\(len\(word_to_context\)\)) s
+/F-gs-font 10 10 SF
+18 260 M (110:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 260 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 260 M
+(# print "Locations to encrypt: " +  str\(locations\)) s
+/F-gs-font 10 10 SF
+18 249 M (111:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 249 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 249 M
+(return) s
+/F-gs-font 10 10 SF
+108 249 M
+( word_to_context) s
+18 238 M (112:) s
+18 227 M (113:) s
+18 216 M (114:) s
+/Courier-Bold 10 10 SUF
+48 216 M
+(def) s
+/F-gs-font 10 10 SF
+66 216 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 216 M
+(request_password) s
+/F-gs-font 10 10 SF
+168 216 M
+(\(\):) s
+18 205 M (115:) s
+48 205 M
+(    password=raw_input\() s
+/Courier-Bold 10 10 SUF
+186 205 M
+('Enter password: ') s
+/F-gs-font 10 10 SF
+294 205 M
+(\)) s
+18 194 M (116:) s
+48 194 M
+(    hash_password=argon2.low_level.hash_secret_raw\(str.encode\(password\),salt,time_) s
+5 183 M
+(cost=time,) s
+18 172 M (117:) s
+48 172 M
+(                                                  memory_cost=mem_cost,) s
+18 161 M (118:) s
+48 161 M
+(                                                   parallelism=p,) s
+18 150 M (119:) s
+48 150 M
+(                                                   hash_len=hash_len,type=argon2.l) s
+5 139 M
+(ow_level.Type.I\)) s
+18 128 M (120:) s
+48 128 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 128 M
+(return) s
+/F-gs-font 10 10 SF
+108 128 M
+( base64.urlsafe_b64encode\(hash_password\)) s
+18 117 M (121:) s
+18 106 M (122:) s
+/Courier-Bold 10 10 SUF
+48 106 M
+(def) s
+/F-gs-font 10 10 SF
+66 106 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 106 M
+(encrypt_ckpt) s
+/F-gs-font 10 10 SF
+144 106 M
+(\(log_dir,filename,hashed_password\):) s
+18 95 M (123:) s
+48 95 M
+(    dir_name=) s
+/Courier-Bold 10 10 SUF
+126 95 M
+('encrypted_log') s
+/F-gs-font 10 10 SF
+18 84 M (124:) s
+48 84 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 84 M
+(if) s
+/F-gs-font 10 10 SF
+84 84 M
+( ) s
+/Courier-Bold 10 10 SUF
+90 84 M
+(not) s
+/F-gs-font 10 10 SF
+108 84 M
+( os.path.exists\(dir_name\):) s
+18 73 M (125:) s
+48 73 M
+(        os.makedirs\(dir_name\)) s
+18 62 M (126:) s
+48 62 M
+(    with open\(os.path.join\(dir_name,filename\),) s
+/Courier-Bold 10 10 SUF
+324 62 M
+('wb') s
+/F-gs-font 10 10 SF
+348 62 M
+(\) as f:) s
+18 51 M (127:) s
+48 51 M
+(        f.write\(Fernet\(hashed_password\).encrypt\(open\(os.path.join\(log_dir,filename) s
+5 40 M
+(\),) s
+/Courier-Bold 10 10 SUF
+17 40 M
+('rb') s
+/F-gs-font 10 10 SF
+41 40 M
+(\).read\(\)\)\)) s
+18 29 M (128:) s
+18 18 M (129:) s
+/Courier-Bold 10 10 SUF
+48 18 M
+(def) s
+/F-gs-font 10 10 SF
+66 18 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 18 M
+(export_encrypted) s
+/F-gs-font 10 10 SF
+168 18 M
+(\(log_dir\):) s
+18 7 M (130:) s
+48 7 M
+(    hashed_password=request_password\(\)) s
+_R
+S
+%%Page: (3) 3
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 3 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (3) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+18 766 M (131:) s
+48 766 M
+(    encrypt_ckpt\(log_dir,) s
+/Courier-Bold 10 10 SUF
+198 766 M
+('metadata.tsv') s
+/F-gs-font 10 10 SF
+282 766 M
+(,hashed_password\)) s
+18 755 M (132:) s
+48 755 M
+(    encrypt_ckpt\(log_dir,) s
+/Courier-Bold 10 10 SUF
+198 755 M
+('model.ckpt.meta') s
+/F-gs-font 10 10 SF
+300 755 M
+(,hashed_password\)) s
+18 744 M (133:) s
+48 744 M
+(    encrypt_ckpt\(log_dir,) s
+/Courier-Bold 10 10 SUF
+198 744 M
+('model.ckpt.index') s
+/F-gs-font 10 10 SF
+306 744 M
+(,hashed_password\)) s
+18 733 M (134:) s
+48 733 M
+(    encrypt_ckpt\(log_dir,) s
+/Courier-Bold 10 10 SUF
+198 733 M
+('model.ckpt.data-00000-of-00001') s
+/F-gs-font 10 10 SF
+390 733 M
+(,hashed_password\)) s
+18 722 M (135:) s
+48 722 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 722 M
+(print) s
+/F-gs-font 10 10 SF
+102 722 M
+(\() s
+/Courier-Bold 10 10 SUF
+108 722 M
+('Encrypted Logs saved at: ') s
+/F-gs-font 10 10 SF
+270 722 M
+(+os.path.abspath\() s
+/Courier-Bold 10 10 SUF
+372 722 M
+('encrypted_log') s
+/F-gs-font 10 10 SF
+462 722 M
+(\)\)) s
+18 711 M (136:) s
+18 700 M (137:) s
+18 689 M (138:) s
+18 678 M (139:) s
+/Courier-Bold 10 10 SUF
+48 678 M
+(def) s
+/F-gs-font 10 10 SF
+66 678 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 678 M
+(word2vec_basic) s
+/F-gs-font 10 10 SF
+156 678 M
+(\(log_dir,choice\):) s
+18 667 M (140:) s
+48 667 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 667 M
+("""Example of building, training and visualizing a word2vec model.""") s
+/F-gs-font 10 10 SF
+18 656 M (141:) s
+48 656 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 656 M
+(# Create the directory for TensorBoard variables if there is not.) s
+/F-gs-font 10 10 SF
+18 645 M (142:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 645 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 645 M
+(if) s
+/F-gs-font 10 10 SF
+84 645 M
+( ) s
+/Courier-Bold 10 10 SUF
+90 645 M
+(not) s
+/F-gs-font 10 10 SF
+108 645 M
+( os.path.exists\(log_dir\):) s
+18 634 M (143:) s
+48 634 M
+(        os.makedirs\(log_dir\)) s
+18 623 M (144:) s
+18 612 M (145:) s
+48 612 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 612 M
+(# Step 1: Download the data.) s
+/F-gs-font 10 10 SF
+18 601 M (146:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 601 M
+(    url = ) s
+/Courier-Bold 10 10 SUF
+108 601 M
+('http://mattmahoney.net/dc/') s
+/F-gs-font 10 10 SF
+18 590 M (147:) s
+18 579 M (148:) s
+48 579 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 579 M
+(# pylint: disable=redefined-outer-name) s
+/F-gs-font 10 10 SF
+18 568 M (149:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 568 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 568 M
+(def) s
+/F-gs-font 10 10 SF
+90 568 M
+( ) s
+/Courier-Bold 10 10 SUF
+96 568 M
+(maybe_download) s
+/F-gs-font 10 10 SF
+180 568 M
+(\(filename, expected_bytes\):) s
+18 557 M (150:) s
+48 557 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 557 M
+("""Download a file if not present, and make sure it's the right size.""") s
+/F-gs-font 10 10 SF
+18 546 M (151:) s
+48 546 M
+(        local_filename = os.path.join\(gettempdir\(\), filename\)) s
+18 535 M (152:) s
+48 535 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 535 M
+(if) s
+/F-gs-font 10 10 SF
+108 535 M
+( ) s
+/Courier-Bold 10 10 SUF
+114 535 M
+(not) s
+/F-gs-font 10 10 SF
+132 535 M
+( os.path.exists\(local_filename\):) s
+18 524 M (153:) s
+48 524 M
+(            local_filename, _ = urllib.request.urlretrieve\(url + filename,) s
+18 513 M (154:) s
+48 513 M
+(                                                     local_filename\)) s
+18 502 M (155:) s
+48 502 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 502 M
+(print) s
+/F-gs-font 10 10 SF
+126 502 M
+(\(local_filename\)) s
+18 491 M (156:) s
+48 491 M
+(        statinfo = os.stat\(local_filename\)) s
+18 480 M (157:) s
+48 480 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 480 M
+(if) s
+/F-gs-font 10 10 SF
+108 480 M
+( statinfo.st_size == expected_bytes:) s
+18 469 M (158:) s
+48 469 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 469 M
+(print) s
+/F-gs-font 10 10 SF
+150 469 M
+(\() s
+/Courier-Bold 10 10 SUF
+156 469 M
+('Found and verified') s
+/F-gs-font 10 10 SF
+276 469 M
+(, filename\)) s
+18 458 M (159:) s
+48 458 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 458 M
+(else) s
+/F-gs-font 10 10 SF
+120 458 M
+(:) s
+18 447 M (160:) s
+48 447 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 447 M
+(print) s
+/F-gs-font 10 10 SF
+150 447 M
+(\(statinfo.st_size\)) s
+18 436 M (161:) s
+48 436 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 436 M
+(raise) s
+/F-gs-font 10 10 SF
+150 436 M
+( Exception\() s
+/Courier-Bold 10 10 SUF
+216 436 M
+('Failed to verify ') s
+/F-gs-font 10 10 SF
+330 436 M
+( + local_filename +) s
+18 425 M (162:) s
+48 425 M
+(                      ) s
+/Courier-Bold 10 10 SUF
+180 425 M
+('. Can you get to it with a browser?') s
+/F-gs-font 10 10 SF
+402 425 M
+(\)) s
+18 414 M (163:) s
+48 414 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 414 M
+(return) s
+/F-gs-font 10 10 SF
+132 414 M
+( local_filename) s
+18 403 M (164:) s
+18 392 M (165:) s
+48 392 M
+(    filename = maybe_download\() s
+/Courier-Bold 10 10 SUF
+228 392 M
+('text8.zip') s
+/F-gs-font 10 10 SF
+294 392 M
+(, 31344016\)) s
+18 381 M (166:) s
+18 370 M (167:) s
+48 370 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 370 M
+(# Read the data into a list of strings.) s
+/F-gs-font 10 10 SF
+18 359 M (168:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 359 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 359 M
+(def) s
+/F-gs-font 10 10 SF
+90 359 M
+( ) s
+/Courier-Bold 10 10 SUF
+96 359 M
+(read_data) s
+/F-gs-font 10 10 SF
+150 359 M
+(\(filename\):) s
+18 348 M (169:) s
+48 348 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 348 M
+("""Extract the first file enclosed in a zip file as a list of words.""") s
+/F-gs-font 10 10 SF
+18 337 M (170:) s
+48 337 M
+(        with zipfile.ZipFile\(filename\) as f:) s
+18 326 M (171:) s
+48 326 M
+(            data = tf.compat.as_str\(f.read\(f.namelist\(\)[0]\)\).split\(\)) s
+18 315 M (172:) s
+48 315 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 315 M
+(return) s
+/F-gs-font 10 10 SF
+132 315 M
+( data) s
+18 304 M (173:) s
+18 293 M (174:) s
+48 293 M
+(    vocabulary = read_data\(filename\)) s
+18 282 M (175:) s
+48 282 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 282 M
+(print) s
+/F-gs-font 10 10 SF
+102 282 M
+(\() s
+/Courier-Bold 10 10 SUF
+108 282 M
+('Data size') s
+/F-gs-font 10 10 SF
+174 282 M
+(, len\(vocabulary\)\)) s
+18 271 M (176:) s
+18 260 M (177:) s
+48 260 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 260 M
+(# Step 2: Build the dictionary and replace rare words with UNK token.) s
+/F-gs-font 10 10 SF
+18 249 M (178:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 249 M
+(    vocabulary_size = 50000) s
+18 238 M (179:) s
+18 227 M (180:) s
+48 227 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 227 M
+(def) s
+/F-gs-font 10 10 SF
+90 227 M
+( ) s
+/Courier-Bold 10 10 SUF
+96 227 M
+(build_dataset) s
+/F-gs-font 10 10 SF
+174 227 M
+(\(words, n_words\):) s
+18 216 M (181:) s
+48 216 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 216 M
+("""Process raw inputs into a dataset.""") s
+/F-gs-font 10 10 SF
+18 205 M (182:) s
+48 205 M
+(        count = [[) s
+/Courier-Bold 10 10 SUF
+156 205 M
+('UNK') s
+/F-gs-font 10 10 SF
+186 205 M
+(, -1]]) s
+18 194 M (183:) s
+48 194 M
+(        count.extend\(collections.Counter\(words\).most_common\(n_words - 1\)\)) s
+18 183 M (184:) s
+48 183 M
+(        dictionary = dict\(\)) s
+18 172 M (185:) s
+48 172 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 172 M
+(for) s
+/F-gs-font 10 10 SF
+114 172 M
+( word, _ ) s
+/Courier-Bold 10 10 SUF
+168 172 M
+(in) s
+/F-gs-font 10 10 SF
+180 172 M
+( count:) s
+18 161 M (186:) s
+48 161 M
+(          dictionary[word] = len\(dictionary\)) s
+18 150 M (187:) s
+48 150 M
+(        data = list\(\)) s
+18 139 M (188:) s
+48 139 M
+(        unk_count = 0) s
+18 128 M (189:) s
+48 128 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 128 M
+(for) s
+/F-gs-font 10 10 SF
+114 128 M
+( word ) s
+/Courier-Bold 10 10 SUF
+150 128 M
+(in) s
+/F-gs-font 10 10 SF
+162 128 M
+( words:) s
+18 117 M (190:) s
+48 117 M
+(          index = dictionary.get\(word, 0\)) s
+18 106 M (191:) s
+48 106 M
+(          ) s
+/Courier-Bold 10 10 SUF
+108 106 M
+(if) s
+/F-gs-font 10 10 SF
+120 106 M
+( index == 0:  ) s
+/Courier-Oblique 10 10 SUF
+204 106 M
+(# dictionary['UNK']) s
+/F-gs-font 10 10 SF
+18 95 M (192:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 95 M
+(            unk_count += 1) s
+18 84 M (193:) s
+48 84 M
+(          data.append\(index\)) s
+18 73 M (194:) s
+48 73 M
+(        count[0][1] = unk_count) s
+18 62 M (195:) s
+48 62 M
+(        reversed_dictionary = dict\(zip\(dictionary.values\(\), dictionary.keys\(\)\)\)) s
+18 51 M (196:) s
+48 51 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 51 M
+(return) s
+/F-gs-font 10 10 SF
+132 51 M
+( data, count, dictionary, reversed_dictionary) s
+18 40 M (197:) s
+18 29 M (198:) s
+48 29 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 29 M
+(# Filling 4 global variables:) s
+/F-gs-font 10 10 SF
+18 18 M (199:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 18 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 18 M
+(# data - list of codes \(integers from 0 to vocabulary_size-1\).) s
+/F-gs-font 10 10 SF
+18 7 M (200:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 7 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 7 M
+(#   This is the original text but words are replaced by their codes) s
+_R
+S
+%%Page: (4) 4
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 4 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+/Courier-Oblique 10 10 SUF
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (4) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+/F-gs-font 10 10 SF
+18 766 M (201:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 766 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 766 M
+(# count - map of words\(strings\) to count of occurrences) s
+/F-gs-font 10 10 SF
+18 755 M (202:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 755 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 755 M
+(# dictionary - map of words\(strings\) to their codes\(integers\)) s
+/F-gs-font 10 10 SF
+18 744 M (203:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 744 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 744 M
+(# reverse_dictionary - maps codes\(integers\) to words\(strings\)) s
+/F-gs-font 10 10 SF
+18 733 M (204:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 733 M
+(    data, count, unused_dictionary, reverse_dictionary = build_dataset\() s
+18 722 M (205:) s
+48 722 M
+(      vocabulary, vocabulary_size\)) s
+18 711 M (206:) s
+48 711 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 711 M
+(del) s
+/F-gs-font 10 10 SF
+90 711 M
+( vocabulary  ) s
+/Courier-Oblique 10 10 SUF
+168 711 M
+(# Hint to reduce memory.) s
+/F-gs-font 10 10 SF
+18 700 M (207:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 700 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 700 M
+(print) s
+/F-gs-font 10 10 SF
+102 700 M
+(\() s
+/Courier-Bold 10 10 SUF
+108 700 M
+('Most common words \(+UNK\)') s
+/F-gs-font 10 10 SF
+264 700 M
+(, count[:5]\)) s
+18 689 M (208:) s
+48 689 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 689 M
+(print) s
+/F-gs-font 10 10 SF
+102 689 M
+(\() s
+/Courier-Bold 10 10 SUF
+108 689 M
+('Sample data') s
+/F-gs-font 10 10 SF
+186 689 M
+(, data[:10], [reverse_dictionary[i] ) s
+/Courier-Bold 10 10 SUF
+402 689 M
+(for) s
+/F-gs-font 10 10 SF
+420 689 M
+( i ) s
+/Courier-Bold 10 10 SUF
+438 689 M
+(in) s
+/F-gs-font 10 10 SF
+450 689 M
+( data[:10]]\)) s
+18 678 M (209:) s
+18 667 M (210:) s
+48 667 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 667 M
+(# Step 3: Function to generate a training batch for the skip-gram model.) s
+/F-gs-font 10 10 SF
+18 656 M (211:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 656 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 656 M
+(def) s
+/F-gs-font 10 10 SF
+90 656 M
+( ) s
+/Courier-Bold 10 10 SUF
+96 656 M
+(generate_batch) s
+/F-gs-font 10 10 SF
+180 656 M
+(\(batch_size, bag_window\):) s
+18 645 M (212:) s
+48 645 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 645 M
+(global) s
+/F-gs-font 10 10 SF
+132 645 M
+( data_index) s
+18 634 M (213:) s
+48 634 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 634 M
+(# assert batch_size % num_skips == 0) s
+/F-gs-font 10 10 SF
+18 623 M (214:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 623 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 623 M
+(# assert num_skips <= 2 * skip_window) s
+/F-gs-font 10 10 SF
+18 612 M (215:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 612 M
+(        batch = np.ndarray\(shape=\(batch_size,2*bag_window\), dtype=np.int32\)) s
+18 601 M (216:) s
+48 601 M
+(        labels = np.ndarray\(shape=\(batch_size, 1\), dtype=np.int32\)) s
+18 590 M (217:) s
+48 590 M
+(        span = 2 * bag_window + 1  ) s
+/Courier-Oblique 10 10 SUF
+258 590 M
+(# [ skip_window target skip_window ]) s
+/F-gs-font 10 10 SF
+18 579 M (218:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 579 M
+(        buffer = collections.deque\(maxlen=span\)  ) s
+/Courier-Oblique 10 10 SUF
+342 579 M
+(# pylint: disable=redefined-built) s
+5 568 M
+(in) s
+/F-gs-font 10 10 SF
+18 557 M (219:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 557 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 557 M
+(if) s
+/F-gs-font 10 10 SF
+108 557 M
+( data_index + span > len\(data\):) s
+18 546 M (220:) s
+48 546 M
+(          data_index = 0) s
+18 535 M (221:) s
+48 535 M
+(        buffer.extend\(data[data_index:data_index + span]\)) s
+18 524 M (222:) s
+48 524 M
+(        data_index += span) s
+18 513 M (223:) s
+48 513 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 513 M
+(for) s
+/F-gs-font 10 10 SF
+114 513 M
+( i ) s
+/Courier-Bold 10 10 SUF
+132 513 M
+(in) s
+/F-gs-font 10 10 SF
+144 513 M
+( range\(batch_size\):) s
+18 502 M (224:) s
+48 502 M
+(          context_words = [buffer[w] ) s
+/Courier-Bold 10 10 SUF
+270 502 M
+(for) s
+/F-gs-font 10 10 SF
+288 502 M
+( w ) s
+/Courier-Bold 10 10 SUF
+306 502 M
+(in) s
+/F-gs-font 10 10 SF
+318 502 M
+( range\(span\) ) s
+/Courier-Bold 10 10 SUF
+396 502 M
+(if) s
+/F-gs-font 10 10 SF
+408 502 M
+( w != bag_window]) s
+18 491 M (225:) s
+48 491 M
+(          ) s
+/Courier-Oblique 10 10 SUF
+108 491 M
+(# words_to_use = random.sample\(context_words, num_skips\)) s
+/F-gs-font 10 10 SF
+18 480 M (226:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 480 M
+(          ) s
+/Courier-Oblique 10 10 SUF
+108 480 M
+(# for j, context_word in enumerate\(words_to_use\):) s
+/F-gs-font 10 10 SF
+18 469 M (227:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 469 M
+(          ) s
+/Courier-Oblique 10 10 SUF
+108 469 M
+(#   batch[i * num_skips + j] = buffer[skip_window]) s
+/F-gs-font 10 10 SF
+18 458 M (228:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 458 M
+(          ) s
+/Courier-Oblique 10 10 SUF
+108 458 M
+(#   labels[i * num_skips + j, 0] = buffer[context_word]) s
+/F-gs-font 10 10 SF
+18 447 M (229:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 447 M
+(          batch[i]=context_words) s
+18 436 M (230:) s
+48 436 M
+(          labels[i,0]=buffer[bag_window]) s
+18 425 M (231:) s
+48 425 M
+(          ) s
+/Courier-Bold 10 10 SUF
+108 425 M
+(if) s
+/F-gs-font 10 10 SF
+120 425 M
+( data_index == len\(data\):) s
+18 414 M (232:) s
+48 414 M
+(            buffer.extend\(data[0:span]\)) s
+18 403 M (233:) s
+48 403 M
+(            data_index = span) s
+18 392 M (234:) s
+48 392 M
+(          ) s
+/Courier-Bold 10 10 SUF
+108 392 M
+(else) s
+/F-gs-font 10 10 SF
+132 392 M
+(:) s
+18 381 M (235:) s
+48 381 M
+(            buffer.append\(data[data_index]\)) s
+18 370 M (236:) s
+48 370 M
+(            data_index += 1) s
+18 359 M (237:) s
+48 359 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 359 M
+(# Backtrack a little bit to avoid skipping words in the end of a batch) s
+/F-gs-font 10 10 SF
+18 348 M (238:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 348 M
+(        data_index = \(data_index + len\(data\) - span\) % len\(data\)) s
+18 337 M (239:) s
+48 337 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 337 M
+(return) s
+/F-gs-font 10 10 SF
+132 337 M
+( batch, labels) s
+18 326 M (240:) s
+18 315 M (241:) s
+48 315 M
+(    batch, labels = generate_batch\(batch_size=8, bag_window=2\)) s
+18 304 M (242:) s
+48 304 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 304 M
+(for) s
+/F-gs-font 10 10 SF
+90 304 M
+( i ) s
+/Courier-Bold 10 10 SUF
+108 304 M
+(in) s
+/F-gs-font 10 10 SF
+120 304 M
+( range\(8\):) s
+18 293 M (243:) s
+48 293 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 293 M
+(print) s
+/F-gs-font 10 10 SF
+126 293 M
+(\(batch[i], [reverse_dictionary[batch[i][x]] ) s
+/Courier-Bold 10 10 SUF
+390 293 M
+(for) s
+/F-gs-font 10 10 SF
+408 293 M
+( x ) s
+/Courier-Bold 10 10 SUF
+426 293 M
+(in) s
+/F-gs-font 10 10 SF
+438 293 M
+( range\(4\)], ) s
+/Courier-Bold 10 10 SUF
+510 293 M
+('->') s
+/F-gs-font 10 10 SF
+534 293 M
+(,) s
+5 282 M
+( labels[i, 0],) s
+18 271 M (244:) s
+48 271 M
+(          reverse_dictionary[labels[i, 0]]\)) s
+18 260 M (245:) s
+18 249 M (246:) s
+48 249 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 249 M
+(# Step 4: Build and train a cbow model.) s
+/F-gs-font 10 10 SF
+18 238 M (247:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+18 227 M (248:) s
+48 227 M
+(    batch_size = 128) s
+18 216 M (249:) s
+48 216 M
+(    embedding_size = 128  ) s
+/Courier-Oblique 10 10 SUF
+204 216 M
+(# Dimension of the embedding vector.) s
+/F-gs-font 10 10 SF
+18 205 M (250:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 205 M
+(    bag_window = 2  ) s
+/Courier-Oblique 10 10 SUF
+168 205 M
+(# How many words to consider left and right.) s
+/F-gs-font 10 10 SF
+18 194 M (251:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 194 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 194 M
+(# num_skips = 2  # How many times to reuse an input to generate a label.) s
+/F-gs-font 10 10 SF
+18 183 M (252:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 183 M
+(    num_sampled = 64  ) s
+/Courier-Oblique 10 10 SUF
+180 183 M
+(# Number of negative examples to sample.) s
+/F-gs-font 10 10 SF
+18 172 M (253:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+18 161 M (254:) s
+48 161 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 161 M
+(# We pick a random validation set to sample nearest neighbors. Here we limit) s
+/F-gs-font 10 10 SF
+18 150 M (255:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 150 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 150 M
+(# the validation samples to the words that have a low numeric ID, which by) s
+/F-gs-font 10 10 SF
+18 139 M (256:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 139 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 139 M
+(# construction are also the most frequent. These 3 variables are used only for) s
+/F-gs-font 10 10 SF
+18 128 M (257:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 128 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 128 M
+(# displaying model accuracy, they don't affect calculation.) s
+/F-gs-font 10 10 SF
+18 117 M (258:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 117 M
+(    valid_size = 16  ) s
+/Courier-Oblique 10 10 SUF
+174 117 M
+(# Random set of words to evaluate similarity on.) s
+/F-gs-font 10 10 SF
+18 106 M (259:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 106 M
+(    valid_window = 100  ) s
+/Courier-Oblique 10 10 SUF
+192 106 M
+(# Only pick dev samples in the head of the distribution.) s
+/F-gs-font 10 10 SF
+18 95 M (260:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 95 M
+(    valid_examples = np.random.choice\(valid_window, valid_size, replace=False\)) s
+18 84 M (261:) s
+18 73 M (262:) s
+48 73 M
+(    graph = tf.Graph\(\)) s
+18 62 M (263:) s
+18 51 M (264:) s
+48 51 M
+(    with graph.as_default\(\):) s
+18 40 M (265:) s
+48 40 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 40 M
+(# Input data.) s
+/F-gs-font 10 10 SF
+18 29 M (266:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 29 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 29 M
+('inputs') s
+/F-gs-font 10 10 SF
+258 29 M
+(\):) s
+18 18 M (267:) s
+48 18 M
+(          train_inputs = tf.placeholder\(tf.int32, shape=[batch_size,bag_window*2]\)) s
+18 7 M (268:) s
+48 7 M
+(          train_labels = tf.placeholder\(tf.int32, shape=[batch_size, 1]\)) s
+_R
+S
+%%Page: (5) 5
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 5 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (5) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+18 766 M (269:) s
+48 766 M
+(          valid_dataset = tf.constant\(valid_examples, dtype=tf.int32\)) s
+18 755 M (270:) s
+48 755 M
+(          encrypt_batch=tf.placeholder\(tf.int32,shape=[None,bag_window*2]\) ) s
+/Courier-Oblique 10 10 SUF
+498 755 M
+(#cover_) s
+5 744 M
+(size is the number of encryption positions found in the cover) s
+/F-gs-font 10 10 SF
+18 733 M (271:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+18 722 M (272:) s
+48 722 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 722 M
+(# Ops and variables pinned to the CPU because of missing GPU implementatio) s
+5 711 M
+(n) s
+/F-gs-font 10 10 SF
+18 700 M (273:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 700 M
+(        with tf.device\() s
+/Courier-Bold 10 10 SUF
+186 700 M
+('/cpu:0') s
+/F-gs-font 10 10 SF
+234 700 M
+(\):) s
+18 689 M (274:) s
+48 689 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 689 M
+(# Look up embeddings for inputs.) s
+/F-gs-font 10 10 SF
+18 678 M (275:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 678 M
+(            with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+234 678 M
+('embeddings') s
+/F-gs-font 10 10 SF
+306 678 M
+(\):) s
+18 667 M (276:) s
+48 667 M
+(                embeddings = tf.Variable\(tf.random_uniform\([vocabulary_size,) s
+18 656 M (277:) s
+48 656 M
+(                                                            embedding_size],) s
+18 645 M (278:) s
+48 645 M
+(                                                           -1.0,) s
+18 634 M (279:) s
+48 634 M
+(                                                           1.0\),name=) s
+/Courier-Bold 10 10 SUF
+462 634 M
+('embeddings') s
+/F-gs-font 10 10 SF
+534 634 M
+(\)) s
+18 623 M (280:) s
+48 623 M
+(                embed=tf.Variable\(tf.zeros\([batch_size,embedding_size]\)\)) s
+18 612 M (281:) s
+48 612 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 612 M
+(for) s
+/F-gs-font 10 10 SF
+138 612 M
+( j ) s
+/Courier-Bold 10 10 SUF
+156 612 M
+(in) s
+/F-gs-font 10 10 SF
+168 612 M
+( range\(bag_window*2\):) s
+18 601 M (282:) s
+48 601 M
+(                embed =embed + tf.nn.embedding_lookup\(embeddings, train_inputs[:,j) s
+5 590 M
+(]\)) s
+18 579 M (283:) s
+48 579 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 579 M
+(#cbow_norm=tf.sqrt\(tf.reduce_sum\(tf.square\(embed\),1,keepdims=True\)\)) s
+/F-gs-font 10 10 SF
+18 568 M (284:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 568 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 568 M
+(#embed=embed/\(cbow_norm\) #normalizations is fruitless) s
+/F-gs-font 10 10 SF
+18 557 M (285:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 557 M
+(            embed=embed/\(2*bag_window\)) s
+18 546 M (286:) s
+48 546 M
+(            encrpt_embed=tf.Variable\(tf.zeros\([batch_size,embedding_size]\)\)) s
+18 535 M (287:) s
+48 535 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 535 M
+(for) s
+/F-gs-font 10 10 SF
+138 535 M
+( j ) s
+/Courier-Bold 10 10 SUF
+156 535 M
+(in) s
+/F-gs-font 10 10 SF
+168 535 M
+( range\(bag_window*2\):) s
+18 524 M (288:) s
+48 524 M
+(                encrpt_embed=encrpt_embed+tf.nn.embedding_lookup\(embeddings,encryp) s
+5 513 M
+(t_batch[:,j]\)) s
+18 502 M (289:) s
+48 502 M
+(            encrpt_embed=encrpt_embed/\(2*bag_window\)) s
+18 491 M (290:) s
+48 491 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 491 M
+(#cbow_norm_encrpt=tf.sqrt\(tf.reduce_sum\(tf.square\(encrpt_embed\),1,keep) s
+5 480 M
+(dims=True\)\)) s
+/F-gs-font 10 10 SF
+18 469 M (291:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 469 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 469 M
+(#encrpt_embed=encrpt_embed/cbow_norm_encrpt #normalization is fruitles) s
+5 458 M
+(s) s
+/F-gs-font 10 10 SF
+18 447 M (292:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+18 436 M (293:) s
+48 436 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 436 M
+(# Construct the variables for the NCE loss) s
+/F-gs-font 10 10 SF
+18 425 M (294:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 425 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 425 M
+('weights') s
+/F-gs-font 10 10 SF
+264 425 M
+(\):) s
+18 414 M (295:) s
+48 414 M
+(            nce_weights = tf.Variable\(tf.truncated_normal\([vocabulary_size,) s
+18 403 M (296:) s
+48 403 M
+(                                                           embedding_size],stddev=) s
+5 392 M
+(1.0) s
+18 381 M (297:) s
+48 381 M
+(                                                          /) s
+18 370 M (298:) s
+48 370 M
+(                                                          math.sqrt\(embedding_size) s
+5 359 M
+(\)\),name=) s
+/Courier-Bold 10 10 SUF
+53 359 M
+('weights') s
+/F-gs-font 10 10 SF
+107 359 M
+(\) ) s
+/Courier-Oblique 10 10 SUF
+119 359 M
+(# These are the target word vectors.) s
+/F-gs-font 10 10 SF
+18 348 M (299:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 348 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 348 M
+('biases') s
+/F-gs-font 10 10 SF
+258 348 M
+(\):) s
+18 337 M (300:) s
+48 337 M
+(            nce_biases = tf.Variable\(tf.zeros\([vocabulary_size]\),name=) s
+/Courier-Bold 10 10 SUF
+468 337 M
+('biases') s
+/F-gs-font 10 10 SF
+516 337 M
+(\)) s
+18 326 M (301:) s
+18 315 M (302:) s
+48 315 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 315 M
+(# Compute the average NCE loss for the batch.) s
+/F-gs-font 10 10 SF
+18 304 M (303:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 304 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 304 M
+(# tf.nce_loss automatically draws a new sample of the negative labels each) s
+/F-gs-font 10 10 SF
+18 293 M (304:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 293 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 293 M
+(# time we evaluate the loss.) s
+/F-gs-font 10 10 SF
+18 282 M (305:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 282 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 282 M
+(# Explanation of the meaning of NCE loss:) s
+/F-gs-font 10 10 SF
+18 271 M (306:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 271 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 271 M
+(#   http://mccormickml.com/2016/04/19/word2vec-tutorial-the-skip-gram-mode) s
+5 260 M
+(l/) s
+/F-gs-font 10 10 SF
+18 249 M (307:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 249 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 249 M
+('loss') s
+/F-gs-font 10 10 SF
+246 249 M
+(\):) s
+18 238 M (308:) s
+48 238 M
+(            loss =tf.reduce_mean\(tf.nn.nce_loss\(weights=nce_weights,biases=nce_bia) s
+5 227 M
+(ses,labels=train_labels,inputs=embed,num_sampled=num_sampled,num_classes=vocabulary_size,) s
+5 216 M
+(partition_strategy=) s
+/Courier-Bold 10 10 SUF
+119 216 M
+('div') s
+/F-gs-font 10 10 SF
+149 216 M
+(\)\)) s
+18 205 M (309:) s
+48 205 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 205 M
+(# Add the loss value as a scalar to summary.) s
+/F-gs-font 10 10 SF
+18 194 M (310:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 194 M
+(        tf.summary.scalar\() s
+/Courier-Bold 10 10 SUF
+204 194 M
+('loss') s
+/F-gs-font 10 10 SF
+240 194 M
+(, loss\)) s
+18 183 M (311:) s
+18 172 M (312:) s
+48 172 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 172 M
+('learning_rate') s
+/F-gs-font 10 10 SF
+300 172 M
+(\):) s
+18 161 M (313:) s
+48 161 M
+(            strt_learning_rate=1.0) s
+18 150 M (314:) s
+48 150 M
+(            global_step=tf.Variable\(0\)) s
+18 139 M (315:) s
+48 139 M
+(            learning_rate=tf.train.exponential_decay\(strt_learning_rate,global_ste) s
+5 128 M
+(p,20000,0.7,staircase=True\)) s
+18 117 M (316:) s
+48 117 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 117 M
+(# Construct the SGD optimizer using a learning rate of 1.0.) s
+/F-gs-font 10 10 SF
+18 106 M (317:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 106 M
+(        with tf.name_scope\() s
+/Courier-Bold 10 10 SUF
+210 106 M
+('optimizer') s
+/F-gs-font 10 10 SF
+276 106 M
+(\):) s
+18 95 M (318:) s
+48 95 M
+(            optimizer =tf.train.GradientDescentOptimizer\(learning_rate\).minimize\(l) s
+5 84 M
+(oss,global_step=global_step\)) s
+18 73 M (319:) s
+18 62 M (320:) s
+48 62 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 62 M
+(# Compute the cosine similarity between minibatch examples and all) s
+/F-gs-font 10 10 SF
+18 51 M (321:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 51 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 51 M
+(# embeddings.) s
+/F-gs-font 10 10 SF
+18 40 M (322:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 40 M
+(        norm = tf.sqrt\(tf.reduce_sum\(tf.square\(embeddings\), 1, keepdims=True\)\)) s
+18 29 M (323:) s
+48 29 M
+(        normalized_embeddings = embeddings / norm) s
+18 18 M (324:) s
+48 18 M
+(        valid_embeddings = tf.nn.embedding_lookup\(normalized_embeddings,) s
+18 7 M (325:) s
+48 7 M
+(                                              valid_dataset\)) s
+_R
+S
+%%Page: (6) 6
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 6 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (6) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+18 766 M (326:) s
+18 755 M (327:) s
+48 755 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 755 M
+(# here to predictor \(294\) is testing) s
+/F-gs-font 10 10 SF
+18 744 M (328:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 744 M
+(        similarity = tf.matmul\(valid_embeddings, normalized_embeddings, transpose_) s
+5 733 M
+(b=True\)) s
+18 722 M (329:) s
+48 722 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 722 M
+(#predictor=-tf.sigmoid\(tf.matmul\(encrpt_embed,normalized_embeddings,transp) s
+5 711 M
+(ose_b=True\)\)) s
+/F-gs-font 10 10 SF
+18 700 M (330:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 700 M
+(        predictor=tf.nn.bias_add\(tf.matmul\(encrpt_embed,nce_weights,transpose_b=Tr) s
+5 689 M
+(ue\),nce_biases\)) s
+18 678 M (331:) s
+48 678 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 678 M
+(# Merge all summaries.) s
+/F-gs-font 10 10 SF
+18 667 M (332:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 667 M
+(        merged = tf.summary.merge_all\(\)) s
+18 656 M (333:) s
+18 645 M (334:) s
+48 645 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 645 M
+(# Add variable initializer.) s
+/F-gs-font 10 10 SF
+18 634 M (335:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 634 M
+(        init = tf.global_variables_initializer\(\)) s
+18 623 M (336:) s
+18 612 M (337:) s
+48 612 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 612 M
+(# Create a saver.) s
+/F-gs-font 10 10 SF
+18 601 M (338:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 601 M
+(        saver = tf.train.Saver\(\)) s
+18 590 M (339:) s
+18 579 M (340:) s
+48 579 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 579 M
+(# Step 5: Begin training.) s
+/F-gs-font 10 10 SF
+18 568 M (341:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 568 M
+(    num_steps = 100001 ) s
+/Courier-Oblique 10 10 SUF
+186 568 M
+(#100001) s
+/F-gs-font 10 10 SF
+18 557 M (342:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 557 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 557 M
+(if) s
+/F-gs-font 10 10 SF
+84 557 M
+( choice == ) s
+/Courier-Bold 10 10 SUF
+150 557 M
+('train') s
+/F-gs-font 10 10 SF
+192 557 M
+(:) s
+18 546 M (343:) s
+48 546 M
+(        with tf.Session\(graph=graph\) as session:) s
+18 535 M (344:) s
+48 535 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 535 M
+(# Open a writer to write summaries.) s
+/F-gs-font 10 10 SF
+18 524 M (345:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 524 M
+(            writer = tf.summary.FileWriter\(log_dir, session.graph\)) s
+18 513 M (346:) s
+18 502 M (347:) s
+48 502 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 502 M
+(# We must initialize all variables before we use them.) s
+/F-gs-font 10 10 SF
+18 491 M (348:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 491 M
+(            init.run\(\)) s
+18 480 M (349:) s
+48 480 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 480 M
+(print) s
+/F-gs-font 10 10 SF
+150 480 M
+(\() s
+/Courier-Bold 10 10 SUF
+156 480 M
+('Initialized') s
+/F-gs-font 10 10 SF
+234 480 M
+(\)) s
+18 469 M (350:) s
+18 458 M (351:) s
+48 458 M
+(            average_loss = 0) s
+18 447 M (352:) s
+48 447 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 447 M
+(for) s
+/F-gs-font 10 10 SF
+138 447 M
+( step ) s
+/Courier-Bold 10 10 SUF
+174 447 M
+(in) s
+/F-gs-font 10 10 SF
+186 447 M
+( xrange\(num_steps\):) s
+18 436 M (353:) s
+48 436 M
+(                batch_inputs, batch_labels = generate_batch\(batch_size, bag_window) s
+5 425 M
+(\)) s
+18 414 M (354:) s
+48 414 M
+(                feed_dict = {train_inputs: batch_inputs, train_labels: batch_label) s
+5 403 M
+(s}) s
+18 392 M (355:) s
+18 381 M (356:) s
+48 381 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 381 M
+(# Define metadata variable.) s
+/F-gs-font 10 10 SF
+18 370 M (357:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 370 M
+(                run_metadata = tf.RunMetadata\(\)) s
+18 359 M (358:) s
+18 348 M (359:) s
+48 348 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 348 M
+(# We perform one update step by evaluating the optimizer op \(inclu) s
+5 337 M
+(ding it) s
+/F-gs-font 10 10 SF
+18 326 M (360:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 326 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 326 M
+(# in the list of returned values for session.run\(\)) s
+/F-gs-font 10 10 SF
+18 315 M (361:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 315 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 315 M
+(# Also, evaluate the merged op to get all summaries from the retur) s
+5 304 M
+(ned) s
+/F-gs-font 10 10 SF
+18 293 M (362:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 293 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 293 M
+(# "summary" variable. Feed metadata variable to session for visual) s
+5 282 M
+(izing) s
+/F-gs-font 10 10 SF
+18 271 M (363:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 271 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 271 M
+(# the graph in TensorBoard.) s
+/F-gs-font 10 10 SF
+18 260 M (364:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 260 M
+(                _, summary, loss_val = session.run\([optimizer, merged, loss],) s
+18 249 M (365:) s
+48 249 M
+(                                                 feed_dict=feed_dict,) s
+18 238 M (366:) s
+48 238 M
+(                                                 run_metadata=run_metadata\)) s
+18 227 M (367:) s
+48 227 M
+(                average_loss += loss_val) s
+18 216 M (368:) s
+18 205 M (369:) s
+48 205 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 205 M
+(# Add returned summaries to writer in each step.) s
+/F-gs-font 10 10 SF
+18 194 M (370:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 194 M
+(                writer.add_summary\(summary, step\)) s
+18 183 M (371:) s
+48 183 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 183 M
+(# Add metadata to visualize the graph for the last run.) s
+/F-gs-font 10 10 SF
+18 172 M (372:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 172 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 172 M
+(if) s
+/F-gs-font 10 10 SF
+156 172 M
+( step == \(num_steps - 1\):) s
+18 161 M (373:) s
+48 161 M
+(                    writer.add_run_metadata\(run_metadata, ) s
+/Courier-Bold 10 10 SUF
+396 161 M
+('step%d') s
+/F-gs-font 10 10 SF
+444 161 M
+( % step\)) s
+18 150 M (374:) s
+18 139 M (375:) s
+48 139 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 139 M
+(if) s
+/F-gs-font 10 10 SF
+156 139 M
+( step % 2000 == 0:) s
+18 128 M (376:) s
+48 128 M
+(                    ) s
+/Courier-Bold 10 10 SUF
+168 128 M
+(if) s
+/F-gs-font 10 10 SF
+180 128 M
+( step > 0:) s
+18 117 M (377:) s
+48 117 M
+(                        average_loss /= 2000) s
+18 106 M (378:) s
+48 106 M
+(                    ) s
+/Courier-Oblique 10 10 SUF
+168 106 M
+(# The average loss is an estimate of the loss over the last 20) s
+5 95 M
+(00) s
+/F-gs-font 10 10 SF
+18 84 M (379:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 84 M
+(                    ) s
+/Courier-Oblique 10 10 SUF
+168 84 M
+(# batches.) s
+/F-gs-font 10 10 SF
+18 73 M (380:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 73 M
+(                    ) s
+/Courier-Bold 10 10 SUF
+168 73 M
+(print) s
+/F-gs-font 10 10 SF
+198 73 M
+(\() s
+/Courier-Bold 10 10 SUF
+204 73 M
+('Average loss at step ') s
+/F-gs-font 10 10 SF
+342 73 M
+(, step, ) s
+/Courier-Bold 10 10 SUF
+390 73 M
+(': ') s
+/F-gs-font 10 10 SF
+414 73 M
+(, average_loss\)) s
+18 62 M (381:) s
+48 62 M
+(                    average_loss = 0) s
+18 51 M (382:) s
+18 40 M (383:) s
+48 40 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 40 M
+(# Note that this is expensive \(~20% slowdown if computed every 500) s
+5 29 M
+( steps\)) s
+/F-gs-font 10 10 SF
+18 18 M (384:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 18 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 18 M
+(if) s
+/F-gs-font 10 10 SF
+156 18 M
+( step % 100000 == 0:) s
+18 7 M (385:) s
+48 7 M
+(                    sim = similarity.eval\(\)) s
+_R
+S
+%%Page: (7) 7
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 7 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (7) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+18 766 M (386:) s
+48 766 M
+(                    ) s
+/Courier-Bold 10 10 SUF
+168 766 M
+(for) s
+/F-gs-font 10 10 SF
+186 766 M
+( i ) s
+/Courier-Bold 10 10 SUF
+204 766 M
+(in) s
+/F-gs-font 10 10 SF
+216 766 M
+( xrange\(valid_size\):) s
+18 755 M (387:) s
+48 755 M
+(                        valid_word = reverse_dictionary[valid_examples[i]]) s
+18 744 M (388:) s
+48 744 M
+(                        top_k = 8  ) s
+/Courier-Oblique 10 10 SUF
+258 744 M
+(# number of nearest neighbors) s
+/F-gs-font 10 10 SF
+18 733 M (389:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 733 M
+(                        nearest = \(-sim[i, :]\).argsort\(\)[1:top_k + 1]) s
+18 722 M (390:) s
+48 722 M
+(                        log_str = ) s
+/Courier-Bold 10 10 SUF
+252 722 M
+('Nearest to %s:') s
+/F-gs-font 10 10 SF
+348 722 M
+( % valid_word) s
+18 711 M (391:) s
+48 711 M
+(                        ) s
+/Courier-Bold 10 10 SUF
+192 711 M
+(for) s
+/F-gs-font 10 10 SF
+210 711 M
+( k ) s
+/Courier-Bold 10 10 SUF
+228 711 M
+(in) s
+/F-gs-font 10 10 SF
+240 711 M
+( xrange\(top_k\):) s
+18 700 M (392:) s
+48 700 M
+(                            close_word = reverse_dictionary[nearest[k]]) s
+18 689 M (393:) s
+48 689 M
+(                            log_str = ) s
+/Courier-Bold 10 10 SUF
+276 689 M
+('%s %s,') s
+/F-gs-font 10 10 SF
+324 689 M
+( % \(log_str, close_word\)) s
+18 678 M (394:) s
+48 678 M
+(                        ) s
+/Courier-Bold 10 10 SUF
+192 678 M
+(print) s
+/F-gs-font 10 10 SF
+222 678 M
+(\(log_str\)) s
+18 667 M (395:) s
+48 667 M
+(            final_embeddings = normalized_embeddings.eval\(\)) s
+18 656 M (396:) s
+48 656 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 656 M
+(print) s
+/F-gs-font 10 10 SF
+150 656 M
+(\(final_embeddings[:8,:10]\)) s
+18 645 M (397:) s
+48 645 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 645 M
+(# Write corresponding labels for the embeddings.) s
+/F-gs-font 10 10 SF
+18 634 M (398:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 634 M
+(            with open\(log_dir + ) s
+/Courier-Bold 10 10 SUF
+240 634 M
+('/metadata.tsv') s
+/F-gs-font 10 10 SF
+330 634 M
+(, ) s
+/Courier-Bold 10 10 SUF
+342 634 M
+('w') s
+/F-gs-font 10 10 SF
+360 634 M
+(\) as f:) s
+18 623 M (399:) s
+48 623 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 623 M
+(for) s
+/F-gs-font 10 10 SF
+162 623 M
+( i ) s
+/Courier-Bold 10 10 SUF
+180 623 M
+(in) s
+/F-gs-font 10 10 SF
+192 623 M
+( xrange\(vocabulary_size\):) s
+18 612 M (400:) s
+48 612 M
+(                    f.write\(reverse_dictionary[i] + ) s
+/Courier-Bold 10 10 SUF
+360 612 M
+('\\n') s
+/F-gs-font 10 10 SF
+384 612 M
+(\)) s
+18 601 M (401:) s
+18 590 M (402:) s
+48 590 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 590 M
+(# Save the model for checkpoints.) s
+/F-gs-font 10 10 SF
+18 579 M (403:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 579 M
+(            saver.save\(session, os.path.join\(log_dir, ) s
+/Courier-Bold 10 10 SUF
+372 579 M
+('model.ckpt') s
+/F-gs-font 10 10 SF
+444 579 M
+(\)\)) s
+18 568 M (404:) s
+18 557 M (405:) s
+48 557 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 557 M
+(# Create a configuration for visualizing embeddings with the labels in) s
+/F-gs-font 10 10 SF
+18 546 M (406:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 546 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 546 M
+(# TensorBoard.) s
+/F-gs-font 10 10 SF
+18 535 M (407:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 535 M
+(            config = projector.ProjectorConfig\(\)) s
+18 524 M (408:) s
+48 524 M
+(            embedding_conf = config.embeddings.add\(\)) s
+18 513 M (409:) s
+48 513 M
+(            embedding_conf.tensor_name = embeddings.name) s
+18 502 M (410:) s
+48 502 M
+(            embedding_conf.metadata_path = os.path.join\(log_dir, ) s
+/Courier-Bold 10 10 SUF
+438 502 M
+('metadata.tsv') s
+/F-gs-font 10 10 SF
+522 502 M
+(\)) s
+18 491 M (411:) s
+48 491 M
+(            projector.visualize_embeddings\(writer, config\)) s
+18 480 M (412:) s
+48 480 M
+(        writer.close\(\)) s
+18 469 M (413:) s
+48 469 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 469 M
+(# Step 6: Visualize the embeddings.) s
+/F-gs-font 10 10 SF
+18 458 M (414:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 458 M
+(        export_encrypted\(log_dir\)) s
+18 447 M (415:) s
+48 447 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 447 M
+(# pylint: disable=missing-docstring) s
+/F-gs-font 10 10 SF
+18 436 M (416:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 436 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 436 M
+(# Function to draw visualization of distance between embeddings.) s
+/F-gs-font 10 10 SF
+18 425 M (417:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 425 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 425 M
+(def) s
+/F-gs-font 10 10 SF
+114 425 M
+( ) s
+/Courier-Bold 10 10 SUF
+120 425 M
+(plot_with_labels) s
+/F-gs-font 10 10 SF
+216 425 M
+(\(low_dim_embs, labels, filename\):) s
+18 414 M (418:) s
+48 414 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 414 M
+(assert) s
+/F-gs-font 10 10 SF
+156 414 M
+( low_dim_embs.shape[0] >= len\(labels\), ) s
+/Courier-Bold 10 10 SUF
+390 414 M
+('More labels than embeddi) s
+5 403 M
+(ngs') s
+/F-gs-font 10 10 SF
+18 392 M (419:) s
+48 392 M
+(            plt.figure\(figsize=\(18, 18\)\)  ) s
+/Courier-Oblique 10 10 SUF
+300 392 M
+(# in inches) s
+/F-gs-font 10 10 SF
+18 381 M (420:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 381 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 381 M
+(for) s
+/F-gs-font 10 10 SF
+138 381 M
+( i, label ) s
+/Courier-Bold 10 10 SUF
+198 381 M
+(in) s
+/F-gs-font 10 10 SF
+210 381 M
+( enumerate\(labels\):) s
+18 370 M (421:) s
+48 370 M
+(                x, y = low_dim_embs[i, :]) s
+18 359 M (422:) s
+48 359 M
+(                plt.scatter\(x, y\)) s
+18 348 M (423:) s
+48 348 M
+(                plt.annotate\(label,xy=\(x, y\),xytext=\(5, 2\),textcoords=) s
+/Courier-Bold 10 10 SUF
+468 348 M
+('offset poin) s
+5 337 M
+(ts') s
+/F-gs-font 10 10 SF
+23 337 M
+(,ha=) s
+/Courier-Bold 10 10 SUF
+47 337 M
+('right') s
+/F-gs-font 10 10 SF
+89 337 M
+(,va=) s
+/Courier-Bold 10 10 SUF
+113 337 M
+('bottom') s
+/F-gs-font 10 10 SF
+161 337 M
+(\)) s
+18 326 M (424:) s
+48 326 M
+(            plt.savefig\(filename\)) s
+18 315 M (425:) s
+18 304 M (426:) s
+48 304 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 304 M
+(try) s
+/F-gs-font 10 10 SF
+114 304 M
+(:) s
+18 293 M (427:) s
+48 293 M
+(            ) s
+/Courier-Oblique 10 10 SUF
+120 293 M
+(# pylint: disable=g-import-not-at-top) s
+/F-gs-font 10 10 SF
+18 282 M (428:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 282 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 282 M
+(from) s
+/F-gs-font 10 10 SF
+144 282 M
+( sklearn.manifold ) s
+/Courier-Bold 10 10 SUF
+252 282 M
+(import) s
+/F-gs-font 10 10 SF
+288 282 M
+( TSNE) s
+18 271 M (429:) s
+48 271 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 271 M
+(import) s
+/F-gs-font 10 10 SF
+156 271 M
+( matplotlib.pyplot as plt) s
+18 260 M (430:) s
+18 249 M (431:) s
+48 249 M
+(            tsne = TSNE\() s
+18 238 M (432:) s
+48 238 M
+(                perplexity=30, n_components=2, init=) s
+/Courier-Bold 10 10 SUF
+360 238 M
+('pca') s
+/F-gs-font 10 10 SF
+390 238 M
+(, n_iter=5000, method=) s
+/Courier-Bold 10 10 SUF
+522 238 M
+('ex) s
+5 227 M
+(act') s
+/F-gs-font 10 10 SF
+29 227 M
+(\)) s
+18 216 M (433:) s
+48 216 M
+(            plot_only = 500) s
+18 205 M (434:) s
+48 205 M
+(            low_dim_embs = tsne.fit_transform\(final_embeddings[:plot_only, :]\)) s
+18 194 M (435:) s
+48 194 M
+(            labels = [reverse_dictionary[i] ) s
+/Courier-Bold 10 10 SUF
+312 194 M
+(for) s
+/F-gs-font 10 10 SF
+330 194 M
+( i ) s
+/Courier-Bold 10 10 SUF
+348 194 M
+(in) s
+/F-gs-font 10 10 SF
+360 194 M
+( xrange\(plot_only\)]) s
+18 183 M (436:) s
+48 183 M
+(            plot_with_labels\(low_dim_embs, labels, os.path.join\() s
+/Courier-Bold 10 10 SUF
+432 183 M
+('tsne.png') s
+/F-gs-font 10 10 SF
+492 183 M
+(\)\)) s
+18 172 M (437:) s
+18 161 M (438:) s
+48 161 M
+(        ) s
+/Courier-Bold 10 10 SUF
+96 161 M
+(except) s
+/F-gs-font 10 10 SF
+132 161 M
+( ImportError as ex:) s
+18 150 M (439:) s
+48 150 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 150 M
+(print) s
+/F-gs-font 10 10 SF
+150 150 M
+(\() s
+/Courier-Bold 10 10 SUF
+156 150 M
+('Please install sklearn, matplotlib, and scipy to show embedding) s
+5 139 M
+(s.') s
+/F-gs-font 10 10 SF
+23 139 M
+(\)) s
+18 128 M (440:) s
+48 128 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 128 M
+(print) s
+/F-gs-font 10 10 SF
+150 128 M
+(\(ex\)) s
+18 117 M (441:) s
+48 117 M
+(    ) s
+/Courier-Bold 10 10 SUF
+72 117 M
+(else) s
+/F-gs-font 10 10 SF
+96 117 M
+(:) s
+18 106 M (442:) s
+48 106 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 106 M
+(# TO DO: Take the encryption stream.) s
+/F-gs-font 10 10 SF
+18 95 M (443:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 95 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 95 M
+(# convert the stream into octal.) s
+/F-gs-font 10 10 SF
+18 84 M (444:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 84 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 84 M
+(# embed the choices in the cover.) s
+/F-gs-font 10 10 SF
+18 73 M (445:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 73 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 73 M
+(# Store the cover.) s
+/F-gs-font 10 10 SF
+18 62 M (446:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 62 M
+(        ) s
+/Courier-Oblique 10 10 SUF
+96 62 M
+(# Perform inverse operation.) s
+/F-gs-font 10 10 SF
+18 51 M (447:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 51 M
+(        with tf.Session\(graph=graph\) as session:) s
+18 40 M (448:) s
+48 40 M
+(            saver.restore\(session,os.path.join\(log_dir,) s
+/Courier-Bold 10 10 SUF
+378 40 M
+('model.ckpt') s
+/F-gs-font 10 10 SF
+450 40 M
+(\)\)) s
+18 29 M (449:) s
+48 29 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 29 M
+(print) s
+/F-gs-font 10 10 SF
+150 29 M
+(\(normalized_embeddings.eval\(\)[:8,0:10]\)) s
+18 18 M (450:) s
+48 18 M
+(            encrpt_batch=cover_context_generator\(\)) s
+18 7 M (451:) s
+48 7 M
+(            locs=list\(\)) s
+_R
+S
+%%Page: (8) 8
+%%BeginPageSetup
+_S
+24 24 translate
+/pagenum 8 def
+/fname (Word2Vec/word2vec.py) def
+/fdir (Word2Vec) def
+/ftail (word2vec.py) def
+% User defined strings:
+/fmodstr (Wed May 01 10:04:26 2019) def
+/pagenumstr (8) def
+/user_header_p false def
+/user_footer_p false def
+%%EndPageSetup
+do_header
+18 766 M (452:) s
+48 766 M
+(            locs_context=list\(\)) s
+18 755 M (453:) s
+48 755 M
+(            locs=sorted\(encrpt_batch\)) s
+18 744 M (454:) s
+48 744 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 744 M
+(for) s
+/F-gs-font 10 10 SF
+138 744 M
+( x ) s
+/Courier-Bold 10 10 SUF
+156 744 M
+(in) s
+/F-gs-font 10 10 SF
+168 744 M
+( locs:) s
+18 733 M (455:) s
+48 733 M
+(                locs_context=locs_context+[[unused_dictionary[y] ) s
+/Courier-Bold 10 10 SUF
+438 733 M
+(if) s
+/F-gs-font 10 10 SF
+450 733 M
+( unused_diction) s
+5 722 M
+(ary.has_key\(y\) ) s
+/Courier-Bold 10 10 SUF
+95 722 M
+(else) s
+/F-gs-font 10 10 SF
+119 722 M
+( 0 ) s
+/Courier-Bold 10 10 SUF
+137 722 M
+(for) s
+/F-gs-font 10 10 SF
+155 722 M
+( y ) s
+/Courier-Bold 10 10 SUF
+173 722 M
+(in) s
+/F-gs-font 10 10 SF
+185 722 M
+( encrpt_batch[x]]]) s
+18 711 M (456:) s
+48 711 M
+(            x=0) s
+18 700 M (457:) s
+48 700 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 700 M
+(for) s
+/F-gs-font 10 10 SF
+138 700 M
+( i ) s
+/Courier-Bold 10 10 SUF
+156 700 M
+(in) s
+/F-gs-font 10 10 SF
+168 700 M
+( range\(1,len\(locs\)//128\):) s
+18 689 M (458:) s
+48 689 M
+(                feed_dict={encrypt_batch:locs_context[\(i-1\)*128:i*128]}) s
+18 678 M (459:) s
+48 678 M
+(                predictions=predictor.eval\(feed_dict=feed_dict\)) s
+18 667 M (460:) s
+48 667 M
+(                ) s
+/Courier-Oblique 10 10 SUF
+144 667 M
+(#print\('Predictions', predictions\)) s
+/F-gs-font 10 10 SF
+18 656 M (461:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 656 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 656 M
+(for) s
+/F-gs-font 10 10 SF
+162 656 M
+( j ) s
+/Courier-Bold 10 10 SUF
+180 656 M
+(in) s
+/F-gs-font 10 10 SF
+192 656 M
+( range\(128\):) s
+18 645 M (462:) s
+48 645 M
+(                    top_candidates=\(-predictions[j,:]\).argsort\(\)[0:8] ) s
+/Courier-Oblique 10 10 SUF
+468 645 M
+(#this is the) s
+5 634 M
+( value to be returned) s
+/F-gs-font 10 10 SF
+18 623 M (463:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 623 M
+(                    log_str = ) s
+/Courier-Bold 10 10 SUF
+228 623 M
+('Nearest to %s ->[%s, %s, %s,%s]') s
+/F-gs-font 10 10 SF
+426 623 M
+(%\(str\(locs[x]\),reve) s
+5 612 M
+(rse_dictionary[locs_context[x][0]],reverse_dictionary[locs_context[x][1]],reverse_diction) s
+5 601 M
+(ary[locs_context[x][2]],reverse_dictionary[locs_context[x][3]]\)) s
+18 590 M (464:) s
+48 590 M
+(                    ) s
+/Courier-Bold 10 10 SUF
+168 590 M
+(for) s
+/F-gs-font 10 10 SF
+186 590 M
+( k ) s
+/Courier-Bold 10 10 SUF
+204 590 M
+(in) s
+/F-gs-font 10 10 SF
+216 590 M
+( range\(8\):) s
+18 579 M (465:) s
+48 579 M
+(                        close_word = reverse_dictionary[top_candidates[k]]) s
+18 568 M (466:) s
+48 568 M
+(                        log_str = ) s
+/Courier-Bold 10 10 SUF
+252 568 M
+('%s %s,') s
+/F-gs-font 10 10 SF
+300 568 M
+( % \(log_str, close_word\)) s
+18 557 M (467:) s
+48 557 M
+(                    x=x+1) s
+18 546 M (468:) s
+48 546 M
+(                ) s
+/Courier-Bold 10 10 SUF
+144 546 M
+(print) s
+/F-gs-font 10 10 SF
+174 546 M
+(\(log_str\)) s
+18 535 M (469:) s
+18 524 M (470:) s
+18 513 M (471:) s
+/Courier-Oblique 10 10 SUF
+48 513 M
+(# All functionality is run after tf.app.run\(\) \(b/122547914\). This could be split) s
+/F-gs-font 10 10 SF
+18 502 M (472:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Oblique 10 10 SUF
+48 502 M
+(# up but the methods are laid sequentially with their usage for clarity.) s
+/F-gs-font 10 10 SF
+18 491 M (473:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+/Courier-Bold 10 10 SUF
+48 491 M
+(def) s
+/F-gs-font 10 10 SF
+66 491 M
+( ) s
+/Courier-Bold 10 10 SUF
+72 491 M
+(main) s
+/F-gs-font 10 10 SF
+96 491 M
+(\(unused_argv\):) s
+18 480 M (474:) s
+48 480 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 480 M
+(# Give a folder path as an argument with '--log_dir' to save) s
+/F-gs-font 10 10 SF
+18 469 M (475:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 469 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 469 M
+(# TensorBoard summaries. Default is a log folder in current directory.) s
+/F-gs-font 10 10 SF
+18 458 M (476:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 458 M
+(    current_path = os.path.dirname\(os.path.realpath\(sys.argv[0]\)\)) s
+18 447 M (477:) s
+48 447 M
+(    parser = argparse.ArgumentParser\(\)) s
+18 436 M (478:) s
+48 436 M
+(    parser.add_argument\() s
+18 425 M (479:) s
+48 425 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 425 M
+('--log_dir') s
+/F-gs-font 10 10 SF
+186 425 M
+(,) s
+18 414 M (480:) s
+48 414 M
+(            type=str,) s
+18 403 M (481:) s
+48 403 M
+(            default=os.path.join\(current_path, ) s
+/Courier-Bold 10 10 SUF
+330 403 M
+('log') s
+/F-gs-font 10 10 SF
+360 403 M
+(\),) s
+18 392 M (482:) s
+48 392 M
+(            help=) s
+/Courier-Bold 10 10 SUF
+150 392 M
+('The log directory for TensorBoard summaries.') s
+/F-gs-font 10 10 SF
+426 392 M
+(\)) s
+18 381 M (483:) s
+48 381 M
+(    parser.add_argument\() s
+18 370 M (484:) s
+48 370 M
+(            ) s
+/Courier-Bold 10 10 SUF
+120 370 M
+('--choice') s
+/F-gs-font 10 10 SF
+180 370 M
+(,) s
+18 359 M (485:) s
+48 359 M
+(            type=str,) s
+18 348 M (486:) s
+48 348 M
+(            default=) s
+/Courier-Bold 10 10 SUF
+168 348 M
+('train') s
+/F-gs-font 10 10 SF
+210 348 M
+(,) s
+18 337 M (487:) s
+48 337 M
+(            help=) s
+/Courier-Bold 10 10 SUF
+150 337 M
+('Mode of operation.') s
+/F-gs-font 10 10 SF
+270 337 M
+(\)) s
+18 326 M (488:) s
+48 326 M
+(    flags, unused_flags = parser.parse_known_args\(\)) s
+18 315 M (489:) s
+48 315 M
+(    word2vec_basic\(flags.log_dir,flags.choice\)) s
+18 304 M (490:) s
+48 304 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 304 M
+(#testing) s
+/F-gs-font 10 10 SF
+18 293 M (491:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+48 293 M
+(    ) s
+/Courier-Oblique 10 10 SUF
+72 293 M
+(#word2vec_basic\(flags.log_dir,'eval'\)) s
+/F-gs-font 10 10 SF
+18 282 M (492:) s
+/Courier-Oblique 10 10 SUF
+/F-gs-font 10 10 SF
+18 271 M (493:) s
+/Courier-Bold 10 10 SUF
+48 271 M
+(if) s
+/F-gs-font 10 10 SF
+60 271 M
+( __name__ == ) s
+/Courier-Bold 10 10 SUF
+138 271 M
+('__main__') s
+/F-gs-font 10 10 SF
+198 271 M
+(:) s
+18 260 M (494:) s
+48 260 M
+(  tf.app.run\(\)) s
+_R
+S
+%%Trailer
+%%Pages: 8
+%%DocumentNeededResources: font Courier-Oblique Courier-Bold Courier 
+%%EOF
