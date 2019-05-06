@@ -6,3 +6,16 @@
 me.py
 *.zip
 inspect_checkpoint.py
+Word2Vec/encrypted_log/metadata.tsv
+Word2Vec/encrypted_log/model.ckpt.data-00000-of-00001
+Word2Vec/encrypted_log/model.ckpt.index
+Word2Vec/encrypted_log/model.ckpt.meta
+Word2Vec/log/model.ckpt.data-00000-of-00001
+Word2Vec/log/model.ckpt.index
+Word2Vec/log/model.ckpt.meta
+Word2Vec/log/events.out.tfevents.1556528500.ISs-iMac-74.local
+Word2Vec/log/events.out.tfevents.1556537486.ISs-iMac-74.local
+Word2Vec/log/events.out.tfevents.1556685355.ISs-iMac-74.local
+Word2Vec/log/events.out.tfevents.1556702195.ISs-iMac-74.local
+Word2Vec/log/events.out.tfevents.*.ISs-iMac-74.local
+*.ps
