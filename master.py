@@ -279,16 +279,18 @@ def extractor(cover_text,loc_contexts):
         extrctd_msg.write(message)
     return message
 
+def main():
+    choice=raw_input('embed or extract: ')
+    if choice=='embed':
+        cover_text, loc_contexts=cover_preprocessing('cover')
+        message=read_message()
+        embed(cover_text,loc_contexts,message)
+    elif choice=='extract':
+        cover_text,loc_contexts=cover_preprocessing('stego')
+        message=extractor(cover_text,loc_contexts)
 
-choice=raw_input('embed or extract: ')
-if choice=='embed':
-    cover_text, loc_contexts=cover_preprocessing('cover')
-    message=read_message()
-    embed(cover_text,loc_contexts,message)
-elif choice=='extract':
-    cover_text,loc_contexts=cover_preprocessing('stego')
-    message=extractor(cover_text,loc_contexts)
+    if os.path.exists('temp_log'):
+        shutil.rmtree('temp_log')
 
-if os.path.exists('temp_log'):
-    shutil.rmtree('temp_log')
-
+if __name__=='__main__':
+    main()
