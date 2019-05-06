@@ -49,66 +49,65 @@ p=8
 time=1
 salt=b'somesalt'
 
-def cover_context_generator():
-    bag_window=2
-    skip_window=bag_window
-    
-    f=open(os.path.abspath('aesop10.txt'),'r')
-    l=list(f)
-    original_text=[]
-    for x in l:
-        original_text=original_text+x.split(' ')
-    n_wordLine=len(original_text)
-    new_text=[]
-    # print original_text
-    pos=string.punctuation.find('.') # position of the period
-    punc_Period=string.punctuation[0:pos]+string.punctuation[pos+1:] # removes period from string.punctuation
-
-    for x in original_text:
-    # apparently the best way to remove punctuations
-    # https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
-    # unpunctuated_str=string.translate(x,None,string.punctuation)
-        perioded_str=string.translate(x,None,punc_Period) # removes all punctuations except period
-    # noNewLine_str=string.replace(unpunctuated_str,'\n','')
-        noNewLine_perioded_str=string.replace(perioded_str,'\n','') # replace newline with empty string
-        noNewLine_perioded_str=string.replace(noNewLine_perioded_str,'\r','')
-        # new_text=new_text+[noNewLine_str]
-        
-        # new_text is a list of words where newline is replaced by '' and punctuations except '.' have been removed
-        new_text=new_text+[noNewLine_perioded_str]
-    
-    
-    word_to_context=dict()
-    assert n_wordLine==len(new_text)
-    # print new_text
-    x=0
-    while x < n_wordLine :
-        if x-skip_window>-1 and x+skip_window<n_wordLine and new_text[x]!='' and new_text[x][-1:]!='.':
-            buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] #[m words][x][m words]
-            flag=True
-            i=0
-            while i<len(buffer) and flag==True:
-                if i!=len(buffer)-1 and buffer[i][-1:]!='.' and buffer[i]!='':
-                    i=i+1
-                elif i==len(buffer)-1 and buffer[i]!='':
-                    if buffer[i][-1:]=='.':
-                        buffer[i]=buffer[i][:-1]
-                    i=i+1
-                else:
-                    flag=False
-            if flag==True:
-                word_to_context[x]=buffer
-                print("Buffer "+str(x))
-                print(buffer)
-                x=x+skip_window
-            else:
-                flag=True
-        x=x+1
-    locations=word_to_context.keys() # locations to encrypt
-    # print word_to_context
-    # print "Length of word_to_context="+ str(len(word_to_context))
-    # print "Locations to encrypt: " +  str(locations)
-    return word_to_context
+#def cover_context_generator():
+#    bag_window=2
+#    skip_window=bag_window
+#    
+#    f=open(os.path.abspath('aesop10.txt'),'r')
+#    l=list(f)
+#    original_text=[]
+#    for x in l:
+#        original_text=original_text+x.split(' ')
+#    n_wordLine=len(original_text)
+#    new_text=[]
+#    # print original_text
+#    pos=string.punctuation.find('.') # position of the period
+#    punc_Period=string.punctuation[0:pos]+string.punctuation[pos+1:] # removes period from string.punctuation
+#
+#    for x in original_text:
+#    # apparently the best way to remove punctuations
+#    # https://stackoverflow.com/questions/265960/best-way-to-strip-punctuation-from-a-string-in-python
+#    # unpunctuated_str=string.translate(x,None,string.punctuation)
+#        perioded_str=string.translate(x,None,punc_Period) # removes all punctuations except period
+#    # noNewLine_str=string.replace(unpunctuated_str,'\n','')
+#        noNewLine_perioded_str=string.replace(perioded_str,'\n','') # replace newline with empty string
+#        noNewLine_perioded_str=string.replace(noNewLine_perioded_str,'\r','')
+#        # new_text=new_text+[noNewLine_str]
+#        
+#        # new_text is a list of words where newline is replaced by '' and punctuations except '.' have been removed
+#        new_text=new_text+[noNewLine_perioded_str]
+#    
+#    word_to_context=dict()
+#    assert n_wordLine==len(new_text)
+#    # print new_text
+#    x=0
+#    while x < n_wordLine :
+#        if x-skip_window>-1 and x+skip_window<n_wordLine and new_text[x]!='' and new_text[x][-1:]!='.':
+#            buffer=new_text[x-skip_window:x]+new_text[x+1:x+skip_window+1] #[m words][x][m words]
+#            flag=True
+#            i=0
+#            while i<len(buffer) and flag==True:
+#                if i!=len(buffer)-1 and buffer[i][-1:]!='.' and buffer[i]!='':
+#                    i=i+1
+#                elif i==len(buffer)-1 and buffer[i]!='':
+#                    if buffer[i][-1:]=='.':
+#                        buffer[i]=buffer[i][:-1]
+#                    i=i+1
+#                else:
+#                    flag=False
+#            if flag==True:
+#                word_to_context[x]=buffer
+#                print("Buffer "+str(x))
+#                print(buffer)
+#                x=x+skip_window
+#            else:
+#                flag=True
+#        x=x+1
+#    locations=word_to_context.keys() # locations to encrypt
+#    # print word_to_context
+#    # print "Length of word_to_context="+ str(len(word_to_context))
+#    # print "Locations to encrypt: " +  str(locations)
+#    return word_to_context
 
 
 def request_password():
@@ -246,7 +245,7 @@ def word2vec_basic(log_dir,choice):
     # Step 4: Build and train a cbow model.
 
     batch_size = 128
-    embedding_size = 128  # Dimension of the embedding vector.
+    embedding_size = 512  # Dimension of the embedding vector.
     bag_window = 2  # How many words to consider left and right.
     # num_skips = 2  # How many times to reuse an input to generate a label.
     num_sampled = 64  # Number of negative examples to sample.
@@ -312,7 +311,7 @@ def word2vec_basic(log_dir,choice):
         with tf.name_scope('learning_rate'):
             strt_learning_rate=1.0
             global_step=tf.Variable(0)
-            learning_rate=tf.train.exponential_decay(strt_learning_rate,global_step,20000,0.7,staircase=True)
+            learning_rate=tf.train.exponential_decay(strt_learning_rate,global_step,20000,0.4,staircase=True)
         # Construct the SGD optimizer using a learning rate of 1.0.
         with tf.name_scope('optimizer'):
             optimizer =tf.train.GradientDescentOptimizer(learning_rate).minimize(loss,global_step=global_step)
@@ -411,33 +410,33 @@ def word2vec_basic(log_dir,choice):
             projector.visualize_embeddings(writer, config)
         writer.close()
             # Step 6: Visualize the embeddings.
-        export_encrypted(log_dir)
+        #export_encrypted(log_dir)
         # pylint: disable=missing-docstring
         # Function to draw visualization of distance between embeddings.
-        def plot_with_labels(low_dim_embs, labels, filename):
-            assert low_dim_embs.shape[0] >= len(labels), 'More labels than embeddings'
-            plt.figure(figsize=(18, 18))  # in inches
-            for i, label in enumerate(labels):
-                x, y = low_dim_embs[i, :]
-                plt.scatter(x, y)
-                plt.annotate(label,xy=(x, y),xytext=(5, 2),textcoords='offset points',ha='right',va='bottom')
-            plt.savefig(filename)
-
-        try:
-            # pylint: disable=g-import-not-at-top
-            from sklearn.manifold import TSNE
-            import matplotlib.pyplot as plt
-
-            tsne = TSNE(
-                perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
-            plot_only = 500
-            low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
-            labels = [reverse_dictionary[i] for i in xrange(plot_only)]
-            plot_with_labels(low_dim_embs, labels, os.path.join('tsne.png'))
-
-        except ImportError as ex:
-            print('Please install sklearn, matplotlib, and scipy to show embeddings.')
-            print(ex)
+#        def plot_with_labels(low_dim_embs, labels, filename):
+#            assert low_dim_embs.shape[0] >= len(labels), 'More labels than embeddings'
+#            plt.figure(figsize=(18, 18))  # in inches
+#            for i, label in enumerate(labels):
+#                x, y = low_dim_embs[i, :]
+#                plt.scatter(x, y)
+#                plt.annotate(label,xy=(x, y),xytext=(5, 2),textcoords='offset points',ha='right',va='bottom')
+#            plt.savefig(filename)
+#
+#        try:
+#            # pylint: disable=g-import-not-at-top
+#            from sklearn.manifold import TSNE
+#            import matplotlib.pyplot as plt
+#
+#            tsne = TSNE(
+#                perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
+#            plot_only = 500
+#            low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
+#            labels = [reverse_dictionary[i] for i in xrange(plot_only)]
+#            plot_with_labels(low_dim_embs, labels, os.path.join('tsne.png'))
+#
+#        except ImportError as ex:
+#            print('Please install sklearn, matplotlib, and scipy to show embeddings.')
+#            print(ex)
     else:
         # TO DO: Take the encryption stream.
         # convert the stream into octal.

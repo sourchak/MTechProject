@@ -6,3 +6,6 @@
 me.py
 *.zip
 inspect_checkpoint.py
+*.swp
+log/
+encrypted_log/
