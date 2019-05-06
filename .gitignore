@@ -19,3 +19,5 @@ Word2Vec/log/events.out.tfevents.1556685355.ISs-iMac-74.local
 Word2Vec/log/events.out.tfevents.1556702195.ISs-iMac-74.local
 Word2Vec/log/events.out.tfevents.*.ISs-iMac-74.local
 *.ps
+Word2Vec/log/*
+*.swp

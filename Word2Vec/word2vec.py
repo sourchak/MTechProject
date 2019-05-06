@@ -433,7 +433,7 @@ def word2vec_basic(log_dir,choice):
             plot_only = 500
             low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
             labels = [reverse_dictionary[i] for i in xrange(plot_only)]
-            plot_with_labels(low_dim_embs, labels, os.path.join('tsne.png'))
+            plot_with_labels(low_dim_embs, labels,os.path.join('DistributionInVectorSpace.png'))
 
         except ImportError as ex:
             print('Please install sklearn, matplotlib, and scipy to show embeddings.')
