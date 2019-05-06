@@ -487,7 +487,7 @@ def main(unused_argv):
             help='Mode of operation.')
     flags, unused_flags = parser.parse_known_args()
     word2vec_basic(flags.log_dir,flags.choice)
-    word2vec_basic(flags.log_dir,'eval')
+    #word2vec_basic(flags.log_dir,'eval')
 
 if __name__ == '__main__':
   tf.app.run()
