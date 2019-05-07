@@ -21,3 +21,5 @@ Word2Vec/log/events.out.tfevents.*.ISs-iMac-74.local
 *.ps
 Word2Vec/log/*
 *.swp
+ppt/log/*
+ppt/encrypted_log/*
