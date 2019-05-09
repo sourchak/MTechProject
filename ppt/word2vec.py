@@ -1,5 +1,7 @@
 # Copyright 2015 The TensorFlow Authors. All Rights Reserved.
 #
+# Modifications copyright (C) 2019 Sourit Chakraborty.
+#
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
@@ -77,9 +79,9 @@ def word2vec_cbow(log_dir,choice):
     """Example of building, training and visualizing a word2vec model."""
     # Create the directory for TensorBoard variables if there is not.
     batch_size = 128
-    embedding_size = 128  # Dimension of the embedding vector.
-    bag_window = 2  # How many words to consider left and right.
-    decay_rate=0.7
+    embedding_size = 256  # Dimension of the embedding vector.
+    bag_window = 4  # How many words to consider left and right.
+    decay_rate=0.4
     num_sampled = 64  # Number of negative examples to sample. 
     vocabulary_size = 50000
     # We pick a random validation set to sample nearest neighbors. Here we limit
@@ -97,9 +99,8 @@ def word2vec_cbow(log_dir,choice):
         """Download a file if not present, and make sure it's the right size."""
         local_filename = os.path.join(gettempdir(), filename)
         if not os.path.exists(local_filename):
-            local_filename, _ = urllib.request.urlretrieve(url + filename,
-                                                     local_filename)
-        print(local_filename)
+            local_filename, _ = urllib.request.urlretrieve(url + filename,local_filename)
+        print(local_filename+', decay_rate= '+str(decay_rate)+', embedding_size='+str(embedding_size)+', bag_window='+str(bag_window))
         statinfo = os.stat(local_filename)
         if statinfo.st_size == expected_bytes:
             print('Found and verified', filename)
@@ -142,7 +143,7 @@ def word2vec_cbow(log_dir,choice):
         global data_index
         batch = np.ndarray(shape=(batch_size,2*bag_window), dtype=np.int32)
         labels = np.ndarray(shape=(batch_size, 1), dtype=np.int32)
-        span = 2 * bag_window + 1  # [ skip_window target skip_window ]
+        span = 2 * bag_window + 1  # [ bag_window target bag_window ]
         buffer = collections.deque(maxlen=span)  # pylint: disable=redefined-builtin
         if data_index + span > len(data):
           data_index = 0
@@ -176,7 +177,7 @@ def word2vec_cbow(log_dir,choice):
     # dictionary - map of words(strings) to their codes(integers)
     # reverse_dictionary - maps codes(integers) to words(strings)
     data, count, unused_dictionary, reverse_dictionary = build_dataset(vocabulary, vocabulary_size)
-    del vocabulary  # Hint to reduce memory.
+    del vocabulary  # reduces memory.
     print('Most common words (+UNK)', count[:5])
     print('Sample data', data[:10], [reverse_dictionary[i] for i in data[:10]])
     batch, labels = generate_batch(batch_size=8, bag_window=2)

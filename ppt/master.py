@@ -130,7 +130,7 @@ def octalify(raw_message):
         else:
             print(x+' is an unsupported character.')
     message=message+'7777' # boundary condition
-    #print (message)
+    print ('Octal message: '+message)
     return  message
 
 def inv_octalify(octal_message):
@@ -226,30 +226,35 @@ def embed(cover_text,loc_contexts,message):
     loc_words=dict()
     msg_ptr=0
     end=0
-    log=path.abspath(raw_input('Path to log_dir: ')) # this will be changed once word2vec is mereged with this.
+    log=path.abspath(raw_input('Path to log_dir: '))
     hashed_password=request_password()
     log=decrypt_ckpt(log,hashed_password)
     words=word2vecEvaluator(log,loc_contexts)
     for loc in sorted(loc_contexts):
         if msg_ptr<len(message):
             # print('loc='+str(loc), msg_ptr, message_vec[msg_ptr])
+            print('loc='+str(loc)+'words:')
+            print(words[loc])
             loc_words[loc]=words[loc][int(message[msg_ptr])]
             msg_ptr=msg_ptr+1
             end=loc
     #Octalify takes care of End of Message decided to be 7777 in octal
-    for loc in sorted(loc_words):
-        # print('loc='+str(loc))
-        cover_text[loc]=loc_words[loc]
-        if loc==end:
-            break
-    embedded_msg=' '.join(cover_text)
-    with open('Encrypted_Message.txt','w') as steganogram:
-        steganogram.write(embedded_msg)
+    if msg_ptr>=len(message):
+        for loc in sorted(loc_words):
+            # print('loc='+str(loc))
+            cover_text[loc]=loc_words[loc]
+            if loc==end:
+                break
+        embedded_msg=' '.join(cover_text)
+        with open('Encrypted_Message.txt','w') as steganogram:
+            steganogram.write(embedded_msg)
+    else:
+        print('Cover insufficient. Steganogram not created.')
 
 
 def extractor(cover_text,loc_contexts):
     flag=True
-    log=path.abspath(raw_input('Path to log_dir: ')) # like embed, this too will be changed once word2vec is merged 
+    log=path.abspath(raw_input('Path to log_dir: '))
     hashed_password=request_password()
     log=decrypt_ckpt(log,hashed_password)
     consec_seven=0 #to keep track of consecutive 7s, 4 7s assumed to signal message end
